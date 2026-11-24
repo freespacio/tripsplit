@@ -47,6 +47,20 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .settlement-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f7f9fa;border-radius:10px;padding:12px;font-size:13px}
 .settlement-item strong{white-space:nowrap}
 .balance-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}
+.settlement-form{display:grid;gap:11px;margin-top:17px;padding-top:16px;border-top:1px solid #edf0f3}
+.settlement-form label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+.settlement-form input,.settlement-form select,.settlement-form textarea{width:100%;min-height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:var(--ink)}
+.settlement-form textarea{min-height:64px;resize:vertical}
+.settlement-form button{border:0;border-radius:9px;background:var(--accent);color:#fff;font-weight:700;padding:12px}
+.settlement-form button:disabled{opacity:.6}
+.settlement-confirm{display:flex!important;align-items:flex-start;gap:9px;font-weight:500!important;line-height:1.45}
+.settlement-confirm input{width:17px;min-height:17px;height:17px;margin:0;flex:0 0 auto}
+.settlement-feedback{font-size:12px;line-height:1.5;color:var(--danger)}
+.settlement-history{display:grid;gap:8px;margin-top:16px;padding-top:15px;border-top:1px solid #edf0f3}
+.settlement-history h3{font-size:13px;margin:0 0 2px}
+.settlement-record{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:12px;padding:10px;background:#f7f9fa;border-radius:9px}
+.settlement-record strong{white-space:nowrap}
+
 
 
 .error{background:#fff0f0;border:1px solid #f0d4d4;color:var(--danger);border-radius:15px;padding:20px;line-height:1.6}.loading{color:var(--muted);padding:55px 15px;text-align:center}
@@ -308,6 +322,13 @@ function renderTrip(data, tripId, token) {
       if (participant) participant.share += Number(share.share_cents) || 0;
     });
   });
+  (data.settlements || []).filter(settlement => settlement.status === "paid").forEach(settlement => {
+    const payer = totals.get(settlement.from_participant_id);
+    const recipient = totals.get(settlement.to_participant_id);
+    const amount = Number(settlement.amount_cents) || 0;
+    if (payer) payer.paid += amount;
+    if (recipient) recipient.paid -= amount;
+  });
   const balances = Array.from(totals.values()).map(item => {
     item.net = item.paid - item.share;
     return item;
@@ -351,9 +372,85 @@ function renderTrip(data, tripId, token) {
     const none = document.createElement("p"); none.className = "hint"; none.textContent = (data.expenses || []).length ? "Everyone is settled up." : "Add an expense to see suggested repayments.";
     settlementList.append(none);
   }
+  const history = document.createElement("div"); history.className = "settlement-history";
+  const historyTitle = document.createElement("h3"); historyTitle.textContent = "Recorded repayments";
+  history.append(historyTitle);
+  const recordedSettlements = (data.settlements || []).filter(item => item.status === "paid");
+  if (!recordedSettlements.length) {
+    const emptyHistory = document.createElement("p"); emptyHistory.className = "hint"; emptyHistory.textContent = "No repayments recorded yet.";
+    history.append(emptyHistory);
+  } else {
+    recordedSettlements.forEach(item => {
+      const line = document.createElement("div"); line.className = "settlement-record";
+      const description = document.createElement("span");
+      description.textContent = item.from_name + " paid " + item.to_name + " · " + dateLabel(item.settlement_date);
+      const amount = document.createElement("strong"); amount.textContent = formatMoney(item.amount_cents);
+      line.append(description,amount); history.append(line);
+    });
+  }
+
+  const settlementForm = document.createElement("form"); settlementForm.className = "settlement-form";
+  const formTitle = document.createElement("h3"); formTitle.textContent = "Record a completed repayment";
+  const fromLabel = document.createElement("label"); fromLabel.textContent = "Who paid?";
+  const fromSelect = document.createElement("select"); fromSelect.required = true;
+  const toLabel = document.createElement("label"); toLabel.textContent = "Who received it?";
+  const toSelect = document.createElement("select"); toSelect.required = true;
+  (data.participants || []).forEach(person => {
+    const fromOption = document.createElement("option"); fromOption.value = person.id; fromOption.textContent = person.name; fromSelect.append(fromOption);
+    const toOption = document.createElement("option"); toOption.value = person.id; toOption.textContent = person.name; toSelect.append(toOption);
+  });
+  if (debtors.length) fromSelect.value = debtors[0].id;
+  if (creditors.length) toSelect.value = creditors[0].id;
+  if (fromSelect.value === toSelect.value && (data.participants || []).length > 1) toSelect.selectedIndex = 1;
+  const repaymentAmountLabel = document.createElement("label"); repaymentAmountLabel.textContent = "Amount (" + trip.base_currency + ")";
+  const repaymentAmount = document.createElement("input"); repaymentAmount.type = "number"; repaymentAmount.min = "0.01"; repaymentAmount.max = "1000000"; repaymentAmount.step = "0.01"; repaymentAmount.inputMode = "decimal"; repaymentAmount.placeholder = "0.00"; repaymentAmount.required = true;
+  if (debtors.length) repaymentAmount.value = (debtors[0].remaining / 100).toFixed(2);
+  const repaymentDateLabel = document.createElement("label"); repaymentDateLabel.textContent = "Date paid";
+  const repaymentDate = document.createElement("input"); repaymentDate.type = "date"; const repaymentToday = new Date(); repaymentDate.value = repaymentToday.getFullYear() + "-" + String(repaymentToday.getMonth()+1).padStart(2,"0") + "-" + String(repaymentToday.getDate()).padStart(2,"0"); repaymentDate.required = true;
+  const repaymentNotesLabel = document.createElement("label"); repaymentNotesLabel.textContent = "Notes (optional)";
+  const repaymentNotes = document.createElement("textarea"); repaymentNotes.maxLength = 500; repaymentNotes.placeholder = "Optional details";
+  const confirmLabel = document.createElement("label"); confirmLabel.className = "settlement-confirm";
+  const confirmInput = document.createElement("input"); confirmInput.type = "checkbox"; confirmInput.required = true;
+  const confirmText = document.createElement("span"); confirmText.textContent = "I confirm this repayment has already been made.";
+  confirmLabel.append(confirmInput,confirmText);
+  const saveRepayment = document.createElement("button"); saveRepayment.type = "submit"; saveRepayment.textContent = "Record repayment";
+  const repaymentFeedback = document.createElement("div"); repaymentFeedback.className = "settlement-feedback"; repaymentFeedback.setAttribute("aria-live","polite");
+  settlementForm.append(formTitle,fromLabel,fromSelect,toLabel,toSelect,repaymentAmountLabel,repaymentAmount,repaymentDateLabel,repaymentDate,repaymentNotesLabel,repaymentNotes,confirmLabel,saveRepayment,repaymentFeedback);
+  settlementForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    repaymentFeedback.textContent = "";
+    const amountValue = Number(repaymentAmount.value);
+    const amountCents = Math.round(amountValue * 100);
+    if (!Number.isFinite(amountValue) || amountCents <= 0 || Math.abs(amountValue * 100 - amountCents) > 0.000001) {
+      repaymentFeedback.textContent = "Enter a valid amount with no more than two decimal places."; return;
+    }
+    if (fromSelect.value === toSelect.value) { repaymentFeedback.textContent = "The payer and recipient must be different people."; return; }
+    if (!confirmInput.checked) { repaymentFeedback.textContent = "Please confirm the repayment has already been made."; return; }
+    saveRepayment.disabled = true; saveRepayment.textContent = "Saving…";
+    try {
+      const response = await fetch(API_URL,{
+        method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},
+        body:JSON.stringify({action:"addSettlement",trip_id:tripId,token,from_participant_id:fromSelect.value,to_participant_id:toSelect.value,amount_cents:amountCents,settlement_date:repaymentDate.value,notes:repaymentNotes.value.trim()})
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || "We couldn't record this repayment.");
+      const refresh = await fetch(API_URL,{
+        method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},
+        body:JSON.stringify({action:"getTrip",trip_id:tripId,token})
+      });
+      const refreshed = await refresh.json();
+      if (!refresh.ok || !refreshed.success) throw new Error(refreshed.error || "Repayment saved, but the dashboard couldn't refresh.");
+      renderTrip(refreshed,tripId,token);
+    } catch(error) {
+      repaymentFeedback.textContent = error.message || "Please try again.";
+    } finally {
+      saveRepayment.disabled = false; saveRepayment.textContent = "Record repayment";
+    }
+  });
+
   const note = document.createElement("p"); note.className = "balance-note";
-  note.textContent = "These are suggested repayments based on recorded expenses. They are not payment records; mark repayments separately once we add settlement tracking.";
-  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,note);
+  note.textContent = "Only repayments you confirm as already made are recorded. Recorded repayments adjust balances but never change the original expenses.";
+  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,history,settlementForm,note);
   grid.append(peopleCard,expenseCard,balanceCard);
   app.replaceChildren(hero,grid);
 }
