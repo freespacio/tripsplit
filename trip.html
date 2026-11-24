@@ -351,16 +351,17 @@ function renderTrip(data, tripId, token) {
           input.value = Number(percentageDefault).toFixed(2);
         }
         input.addEventListener("input",() => {
-          if (method === "custom" && people.length === 2) {
+          if (people.length === 2 && (method === "custom" || method === "percentage")) {
             const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
             const editedIndex = fields.indexOf(input);
             const other = fields[editedIndex === 0 ? 1 : 0];
             const entered = Number(input.value);
-            const enteredCents = Number.isFinite(entered) && entered > 0 &&
+            const enteredUnits = Number.isFinite(entered) && entered > 0 &&
               Math.abs(entered * 100 - Math.round(entered * 100)) < 0.000001
               ? Math.round(entered * 100) : 0;
-            if (enteredCents > 0 && enteredCents < amountCents) {
-              other.value = ((amountCents - enteredCents) / 100).toFixed(2);
+            const maximum = method === "custom" ? amountCents : 10000;
+            if (enteredUnits > 0 && enteredUnits < maximum) {
+              other.value = ((maximum - enteredUnits) / 100).toFixed(2);
             } else {
               other.value = "";
             }
@@ -371,11 +372,12 @@ function renderTrip(data, tripId, token) {
         const suffix = document.createElement("span"); suffix.className = "split-share-suffix"; suffix.textContent = method === "custom" ? trip.base_currency : "%";
         row.append(suffix); splitEditor.append(row);
       });
-      if (method === "custom" && people.length === 2) {
+      if ((method === "custom" || method === "percentage") && people.length === 2) {
         const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
-        const firstCents = Math.round(Number(fields[0]?.value) * 100);
-        if (Number.isSafeInteger(firstCents) && firstCents > 0 && firstCents < amountCents) {
-          fields[1].value = ((amountCents - firstCents) / 100).toFixed(2);
+        const firstUnits = Math.round(Number(fields[0]?.value) * 100);
+        const maximum = method === "custom" ? amountCents : 10000;
+        if (Number.isSafeInteger(firstUnits) && firstUnits > 0 && firstUnits < maximum) {
+          fields[1].value = ((maximum - firstUnits) / 100).toFixed(2);
         }
       }
       updateSplitPreview();
