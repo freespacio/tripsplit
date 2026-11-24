@@ -344,7 +344,12 @@ function renderTrip(data, tripId, token) {
         input.dataset.splitValue = "true"; input.dataset.participantId = person.id;
         if (previous.has(person.id)) input.value = previous.get(person.id);
         else if (method === "custom") input.value = (defaults[index]/100).toFixed(2);
-        else input.value = (100/Math.max(1,people.length)).toFixed(2);
+        else {
+          const percentageDefault = index === people.length - 1
+            ? 100 - (100 / Math.max(1,people.length)).toFixed(2) * (people.length - 1)
+            : (100 / Math.max(1,people.length)).toFixed(2);
+          input.value = Number(percentageDefault).toFixed(2);
+        }
         input.addEventListener("input",updateSplitPreview);
         row.append(name,input);
         const suffix = document.createElement("span"); suffix.className = "split-share-suffix"; suffix.textContent = method === "custom" ? trip.base_currency : "%";
