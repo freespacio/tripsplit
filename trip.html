@@ -350,11 +350,34 @@ function renderTrip(data, tripId, token) {
             : (100 / Math.max(1,people.length)).toFixed(2);
           input.value = Number(percentageDefault).toFixed(2);
         }
-        input.addEventListener("input",updateSplitPreview);
+        input.addEventListener("input",() => {
+          if (method === "custom" && people.length === 2) {
+            const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
+            const editedIndex = fields.indexOf(input);
+            const other = fields[editedIndex === 0 ? 1 : 0];
+            const entered = Number(input.value);
+            const enteredCents = Number.isFinite(entered) && entered > 0 &&
+              Math.abs(entered * 100 - Math.round(entered * 100)) < 0.000001
+              ? Math.round(entered * 100) : 0;
+            if (enteredCents > 0 && enteredCents < amountCents) {
+              other.value = ((amountCents - enteredCents) / 100).toFixed(2);
+            } else {
+              other.value = "";
+            }
+          }
+          updateSplitPreview();
+        });
         row.append(name,input);
         const suffix = document.createElement("span"); suffix.className = "split-share-suffix"; suffix.textContent = method === "custom" ? trip.base_currency : "%";
         row.append(suffix); splitEditor.append(row);
       });
+      if (method === "custom" && people.length === 2) {
+        const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
+        const firstCents = Math.round(Number(fields[0]?.value) * 100);
+        if (Number.isSafeInteger(firstCents) && firstCents > 0 && firstCents < amountCents) {
+          fields[1].value = ((amountCents - firstCents) / 100).toFixed(2);
+        }
+      }
       updateSplitPreview();
     };
     splitMethodSelect.addEventListener("change",updateSplitEditor);
