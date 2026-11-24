@@ -1,81 +1,168 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
-
 <head>
-
-  <meta charset="UTF-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <meta name="theme-color" content="#ffffff">
-
-  <title>TripSplit – Shared Trip Expenses</title>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <meta name="description" content="TripSplit makes sharing trip expenses simple.">
+  <title>TripSplit — Shared trip expenses</title>
   <style>
-
-    * {
-
-      box-sizing: border-box;
-
-    }
-
-    body {
-
-      margin: 0;
-
-      padding: 24px;
-
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
-      background: #f5f6f8;
-
-      color: #20242b;
-
-    }
-
-    main {
-
-      max-width: 600px;
-
-      margin: 60px auto;
-
-      padding: 32px 24px;
-
-      text-align: center;
-
-      background: white;
-
-      border-radius: 18px;
-
-    }
-
-    h1 {
-
-      margin-bottom: 8px;
-
-      font-size: 32px;
-
-    }
-
-    p {
-
-      color: #687080;
-
-      line-height: 1.6;
-
-    }
-
+    :root{color-scheme:light;--ink:#17202b;--muted:#687483;--line:#e3e8ee;--paper:#fff;--canvas:#f5f7f9;--accent:#235c50;--accent-dark:#19483f;--soft:#eaf2ef;--danger:#9b3434}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--canvas);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    .shell{max-width:1080px;margin:0 auto;padding:26px 22px 64px}
+    header{display:flex;align-items:center;gap:12px;margin:8px 0 58px}
+    .mark{width:42px;height:42px;border-radius:13px;background:var(--accent);display:grid;place-items:center;color:white;font-size:22px;font-weight:800}
+    .brand{font-size:21px;font-weight:750;letter-spacing:-.6px}
+    .brand span{color:var(--accent)}
+    .hero{display:grid;grid-template-columns:1fr 420px;gap:72px;align-items:center}
+    .eyebrow{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent);font-weight:750;margin:0 0 18px}
+    h1{font-size:clamp(38px,5vw,58px);line-height:1.04;letter-spacing:-2.2px;margin:0 0 20px;max-width:550px}
+    .intro{font-size:17px;line-height:1.7;color:var(--muted);max-width:480px;margin:0}
+    .points{display:flex;gap:22px;flex-wrap:wrap;margin-top:34px;color:#52606d;font-size:13px}
+    .points span:before{content:"✓";color:var(--accent);font-weight:800;margin-right:7px}
+    .panel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 16px 45px rgba(25,42,55,.06)}
+    .panel h2{font-size:22px;letter-spacing:-.5px;margin:0 0 7px}
+    .sub{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 24px}
+    label{display:block;font-size:13px;font-weight:650;margin:17px 0 7px}
+    input,select{width:100%;height:47px;border:1px solid #d8dfe6;border-radius:10px;background:white;padding:0 13px;font:inherit;color:var(--ink);outline:none}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(35,92,80,.1)}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    button{font:inherit;cursor:pointer}
+    .primary{width:100%;border:0;border-radius:11px;background:var(--accent);color:white;font-weight:700;height:49px;margin-top:24px;transition:background .15s}
+    .primary:hover{background:var(--accent-dark)}
+    .primary:disabled{opacity:.6;cursor:wait}
+    .note{font-size:12px;color:var(--muted);line-height:1.5;margin:14px 0 0}
+    .status{display:none;margin-top:18px;padding:14px;border-radius:11px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+    .status.error{display:block;background:#fff0f0;color:var(--danger)}
+    .status.success{display:block;background:var(--soft);color:#214d43}
+    .linkbox{display:block;margin:12px 0;padding:11px;background:white;border:1px solid #d5e3dd;border-radius:9px;color:#214d43;font-size:12px;overflow-wrap:anywhere}
+    .secondary{border:1px solid #c9d8d2;border-radius:9px;background:white;color:var(--accent-dark);font-weight:650;padding:10px 13px}
+    .success-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+    footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
+    @media(max-width:800px){.shell{padding:18px 16px 40px}header{margin:4px 0 40px}.hero{grid-template-columns:1fr;gap:34px}.intro{font-size:16px}.panel{padding:24px}.points{gap:12px 18px}footer{margin-top:42px}}
+    @media(max-width:420px){.two{grid-template-columns:1fr;gap:0}.panel{padding:21px}h1{letter-spacing:-1.5px}}
   </style>
-
 </head>
-
 <body>
+  <div class="shell">
+    <header>
+      <div class="mark" aria-hidden="true">T</div>
+      <div class="brand">Trip<span>Split</span></div>
+    </header>
+    <main class="hero">
+      <section>
+        <p class="eyebrow">Travel together. Settle up simply.</p>
+        <h1>Good trips are better when expenses are clear.</h1>
+        <p class="intro">Keep everyone's trip spending in one place. Record who paid, share costs fairly, and see who owes what — without asking everyone to create an account.</p>
+        <div class="points"><span>Simple shared expenses</span><span>Clear balances</span><span>No sign-up for friends</span></div>
+      </section>
+      <section class="panel" aria-labelledby="form-title">
+        <h2 id="form-title">Start a new trip</h2>
+        <p class="sub">Create your trip, then invite everyone with their own private access link.</p>
+        <form id="create-form">
+          <label for="trip-name">Trip name</label>
+          <input id="trip-name" name="trip_name" maxlength="80" placeholder="e.g. Summer in Portugal" required>
+          <label for="organiser-name">Your name</label>
+          <input id="organiser-name" name="organiser_name" maxlength="60" placeholder="How should we identify you?" required>
+          <label for="currency">Trip currency</label>
+          <select id="currency" name="currency">
+            <option value="EUR" selected>EUR — Euro (€)</option>
+            <option value="USD">USD — US Dollar ($)</option>
+            <option value="GBP">GBP — British Pound (£)</option>
+            <option value="AUD">AUD — Australian Dollar ($)</option>
+            <option value="NZD">NZD — New Zealand Dollar ($)</option>
+            <option value="CAD">CAD — Canadian Dollar ($)</option>
+            <option value="CHF">CHF — Swiss Franc</option>
+            <option value="JPY">JPY — Japanese Yen (¥)</option>
+          </select>
+          <div class="two">
+            <div><label for="start-date">Start date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="start-date" name="start_date" type="date"></div>
+            <div><label for="end-date">End date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="end-date" name="end_date" type="date"></div>
+          </div>
+          <button class="primary" id="submit" type="submit">Create trip <span aria-hidden="true">→</span></button>
+        </form>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <p class="note">Your trip is private. Only people with an access link can open it.</p>
+      </section>
+    </main>
+    <footer>TripSplit · Shared trip expenses, made simple.</footer>
+  </div>
+<script>
+const API_URL = "https://bnkndczemfyejtjcwiaj.supabase.co/functions/v1/trip-api";
+const API_KEY = "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm";
+const form = document.getElementById("create-form");
+const submit = document.getElementById("submit");
+const statusBox = document.getElementById("status");
 
-  <main>
-
-    <h1>TripSplit</h1>
-
-    <p>Shared trip expenses, made simple.</p>
-
-    <p>Your trips. Your expenses. Everyone on the 
+function showError(message) {
+  statusBox.className = "status error";
+  statusBox.textContent = message;
+}
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const tripName = document.getElementById("trip-name").value.trim();
+  const organiserName = document.getElementById("organiser-name").value.trim();
+  const startDate = document.getElementById("start-date").value;
+  const endDate = document.getElementById("end-date").value;
+  if (startDate && endDate && endDate < startDate) {
+    showError("The end date cannot be before the start date.");
+    return;
+  }
+  submit.disabled = true;
+  submit.textContent = "Creating your trip…";
+  statusBox.className = "status";
+  statusBox.textContent = "";
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json", "apikey":API_KEY},
+      body: JSON.stringify({
+        action:"createTrip",
+        trip_name:tripName,
+        organiser_name:organiserName,
+        currency:document.getElementById("currency").value,
+        start_date:startDate || null,
+        end_date:endDate || null
+      })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || "We couldn't create your trip. Please try again.");
+    statusBox.className = "status success";
+    const heading = document.createElement("strong");
+    heading.textContent = "Your trip has been created.";
+    const explanation = document.createElement("p");
+    explanation.textContent = "This is your private organiser link. Save it somewhere safe — anyone with this link can access organiser controls.";
+    const link = document.createElement("a");
+    link.className = "linkbox";
+    link.href = data.organiser_link;
+    link.textContent = data.organiser_link;
+    link.target = "_self";
+    const actions = document.createElement("div");
+    actions.className = "success-actions";
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "secondary";
+    copy.textContent = "Copy organiser link";
+    copy.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(data.organiser_link); copy.textContent = "Copied"; }
+      catch { copy.textContent = "Select and copy the link above"; }
+    });
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "secondary";
+    open.textContent = "Open trip";
+    open.addEventListener("click", () => { window.location.href = data.organiser_link; });
+    actions.append(copy, open);
+    statusBox.replaceChildren(heading, explanation, link, actions);
+    form.hidden = true;
+    document.querySelector(".panel .note").hidden = true;
+  } catch (error) {
+    showError(error.message || "Something went wrong. Please try again.");
+    submit.disabled = false;
+    submit.innerHTML = 'Create trip <span aria-hidden="true">→</span>';
+  }
+});
+</script>
+</body>
+</html>
