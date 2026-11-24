@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f7f9">
+<meta name="description" content="Your private TripSplit shared expense dashboard.">
+<title>Trip dashboard — TripSplit</title>
+<style>
+:root{color-scheme:light;--ink:#17202b;--muted:#687483;--line:#e3e8ee;--paper:#fff;--canvas:#f5f7f9;--accent:#235c50;--accent-dark:#19483f;--soft:#eaf2ef;--danger:#9b3434}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.shell{max-width:1040px;margin:0 auto;padding:22px 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:34px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:750;letter-spacing:-.5px}.mark{width:38px;height:38px;border-radius:12px;background:var(--accent);display:grid;place-items:center;color:white;font-size:20px;font-weight:800}.brand span{color:var(--accent)}
+.access{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:99px;padding:8px 12px}
+main{display:grid;gap:18px}.hero{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 12px 35px rgba(25,42,55,.04)}
+.eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:750;margin:0 0 12px}
+h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0 0 10px}.meta{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px}.card h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
+.people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
+.placeholder{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
+.error{background:#fff0f0;border:1px solid #f0d4d4;color:var(--danger);border-radius:15px;padding:20px;line-height:1.6}.loading{color:var(--muted);padding:55px 15px;text-align:center}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
+@media(max-width:680px){.shell{padding:16px 14px 40px}header{margin-bottom:22px}.hero{padding:24px}.grid{grid-template-columns:1fr;gap:13px}.card{padding:20px}.access{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header><div class="brand"><div class="mark" aria-hidden="true">T</div><div>Trip<span>Split</span></div></div><div class="access" id="access-label">Private trip</div></header>
+<main id="app"><div class="loading">Opening your trip…</div></main>
+<footer>TripSplit · Shared trip expenses, made simple.</footer>
+</div>
+<script>
+const API_URL = "https://bnkndczemfyejtjcwiaj.supabase.co/functions/v1/trip-api";
+const API_KEY = "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm";
+const app = document.getElementById("app");
+
+function showError(message) {
+  const panel = document.createElement("section");
+  panel.className = "error";
+  const title = document.createElement("strong");
+  title.textContent = "We couldn't open this trip";
+  const detail = document.createElement("p");
+  detail.textContent = message;
+  detail.style.margin = "8px 0 0";
+  panel.append(title, detail);
+  app.replaceChildren(panel);
+}
+function dateLabel(value) {
+  if (!value) return "";
+  const date = new Date(value + "T00:00:00");
+  return new Intl.DateTimeFormat(undefined, {day:"numeric",month:"short",year:"numeric"}).format(date);
+}
+function initials(name) {
+  return (name || "?").trim().split(/\\s+/).slice(0,2).map(part=>part[0] || "").join("").toUpperCase();
+}
+function renderTrip(data) {
+  const trip = data.trip;
+  const access = data.access;
+  document.title = trip.name + " — TripSplit";
+  document.getElementById("access-label").textContent = access.role === "organiser" ? "Organiser access" : "Participant access";
+  const hero = document.createElement("section");
+  hero.className = "hero";
+  const eyebrow = document.createElement("p"); eyebrow.className = "eyebrow"; eyebrow.textContent = "Your shared trip";
+  const title = document.createElement("h1"); title.textContent = trip.name;
+  const meta = document.createElement("p"); meta.className = "meta";
+  const dates = [dateLabel(trip.start_date), dateLabel(trip.end_date)].filter(Boolean);
+  const details = [trip.base_currency, dates.length ? dates.join(" – ") : "", trip.status].filter(Boolean);
+  meta.textContent = details.join(" · ");
+  hero.append(eyebrow,title,meta);
+
+  const grid = document.createElement("div"); grid.className = "grid";
+  const peopleCard = document.createElement("section"); peopleCard.className = "card";
+  const peopleTitle = document.createElement("h2"); peopleTitle.textContent = "Participants";
+  const peopleHint = document.createElement("p"); peopleHint.className = "hint"; peopleHint.textContent = (data.participants || []).length + " people on this trip";
+  const people = document.createElement("div"); people.className = "people";
+  (data.participants || []).forEach(person => {
+    const row = document.createElement("div"); row.className = "person";
+    const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = initials(person.name);
+    const name = document.createElement("span"); name.className = "person-name"; name.textContent = person.name;
+    const role = document.createElement("span"); role.className = "role"; role.textContent = person.role;
+    row.append(avatar,name,role); people.append(row);
+  });
+  peopleCard.append(peopleTitle,peopleHint,people);
+
+  const expenseCard = document.createElement("section"); expenseCard.className = "card";
+  const expenseTitle = document.createElement("h2"); expenseTitle.textContent = "Expenses";
+  const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Shared spending for this trip";
+  const expensePlaceholder = document.createElement("div"); expensePlaceholder.className = "placeholder";
+  expensePlaceholder.textContent = "Your expense list will appear here. We're building the expense entry and cost-splitting tools next.";
+  expenseCard.append(expenseTitle,expenseHint,expensePlaceholder);
+
+  const balanceCard = document.createElement("section"); balanceCard.className = "card";
+  const balanceTitle = document.createElement("h2"); balanceTitle.textContent = "Balances";
+  const balanceHint = document.createElement("p"); balanceHint.className = "hint"; balanceHint.textContent = "See who owes whom";
+  const balancePlaceholder = document.createElement("div"); balancePlaceholder.className = "placeholder";
+  balancePlaceholder.textContent = "Once expenses are added, we'll calculate each person's share and suggest how to settle up.";
+  balanceCard.append(balanceTitle,balanceHint,balancePlaceholder);
+  grid.append(peopleCard,expenseCard,balanceCard);
+  app.replaceChildren(hero,grid);
+}
+async function openTrip() {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const tripId = params.get("trip");
+  const token = params.get("token");
+  if (!tripId || !token) { showError("This link is missing its private access details. Please use the complete link shared with you."); return; }
+  try {
+    const response = await fetch(API_URL, {
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":API_KEY},
+      body:JSON.stringify({action:"getTrip",trip_id:tripId,token})
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || "This link may be invalid or revoked.");
+    renderTrip(data);
+  } catch(error) {
+    showError(error.message || "Please check your connection and try again.");
+  }
+}
+openTrip();
+</script>
+</body>
+</html>
