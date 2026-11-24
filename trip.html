@@ -313,7 +313,7 @@ function renderTrip(data, tripId, token) {
   const balanceTitle = document.createElement("h2"); balanceTitle.textContent = "Balances";
   const balanceHint = document.createElement("p"); balanceHint.className = "hint"; balanceHint.textContent = "What each person has paid compared with their share.";
   const balancePeople = document.createElement("div");
-  const totals = new Map((data.participants || []).map(person => [person.id,{person,paid:0,share:0,net:0}]));
+  const totals = new Map((data.participants || []).map(person => [person.id,{person,paid:0,share:0,settlementAdjustment:0,net:0}]));
   (data.expenses || []).forEach(expense => {
     const payer = totals.get(expense.payer_id);
     if (payer) payer.paid += Number(expense.amount_cents) || 0;
@@ -326,11 +326,11 @@ function renderTrip(data, tripId, token) {
     const payer = totals.get(settlement.from_participant_id);
     const recipient = totals.get(settlement.to_participant_id);
     const amount = Number(settlement.amount_cents) || 0;
-    if (payer) payer.paid += amount;
-    if (recipient) recipient.paid -= amount;
+    if (payer) payer.settlementAdjustment += amount;
+    if (recipient) recipient.settlementAdjustment -= amount;
   });
   const balances = Array.from(totals.values()).map(item => {
-    item.net = item.paid - item.share;
+    item.net = item.paid - item.share + item.settlementAdjustment;
     return item;
   });
   balances.forEach(item => {
@@ -339,7 +339,7 @@ function renderTrip(data, tripId, token) {
     const net = document.createElement("div"); net.className = "balance-net " + (item.net > 0 ? "balance-positive" : item.net < 0 ? "balance-negative" : "");
     net.textContent = item.net > 0 ? "Gets back " + formatMoney(item.net) : item.net < 0 ? "Owes " + formatMoney(Math.abs(item.net)) : "Settled";
     const detail = document.createElement("div"); detail.className = "balance-detail";
-    detail.textContent = "Paid " + formatMoney(item.paid) + " · Share " + formatMoney(item.share);
+    detail.textContent = "Expenses paid " + formatMoney(item.paid) + " · Share " + formatMoney(item.share) + (item.settlementAdjustment ? " · Repayments " + (item.settlementAdjustment > 0 ? "+" : "−") + formatMoney(Math.abs(item.settlementAdjustment)) : "");
     row.append(name,net,detail);
     balancePeople.append(row);
   });
