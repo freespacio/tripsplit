@@ -52,7 +52,7 @@ function dateLabel(value) {
   return new Intl.DateTimeFormat(undefined, {day:"numeric",month:"short",year:"numeric"}).format(date);
 }
 function initials(name) {
-  return (name || "?").trim().split(/\\s+/).slice(0,2).map(part=>part[0] || "").join("").toUpperCase();
+  return (name || "?").trim().split(/\s+/).slice(0,2).map(part=>part[0] || "").join("").toUpperCase();
 }
 function renderTrip(data, tripId, token) {
   const trip = data.trip;
