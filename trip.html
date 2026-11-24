@@ -29,6 +29,11 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .expense-meta,.expense-split{font-size:12px;color:var(--muted);line-height:1.5}
 .expense-split{grid-column:1/-1}
 .split-options{display:grid;gap:8px;padding:10px;border:1px solid #e3e8ee;border-radius:10px}
+.split-editor{display:grid;gap:8px}
+.split-share-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(90px,120px) auto;align-items:center;gap:8px;font-size:13px!important;font-weight:500!important;margin:0!important}
+.split-share-row input{min-height:38px!important;padding:7px 9px!important}
+.split-share-suffix{font-size:11px;color:var(--muted)}
+.split-preview{font-size:12px;line-height:1.5;padding:9px 10px;background:#f7f9fa;border-radius:8px;overflow-wrap:anywhere}
 .split-option{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
 .split-option input{width:16px;height:16px;min-height:0;accent-color:var(--accent)}
 .expense-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:12px 14px}
@@ -260,19 +265,110 @@ function renderTrip(data, tripId, token) {
       const text = document.createElement("span"); text.textContent = person.name;
       label.append(checkbox,text); splitOptions.append(label);
     });
+    const splitMethodLabel = document.createElement("label"); splitMethodLabel.textContent = "How should it be split?";
+    const splitMethodSelect = document.createElement("select"); splitMethodSelect.name = "split_type";
+    [["equal","Equally"],["custom","Exact amounts"],["percentage","Percentages"]].forEach(([value,labelText]) => {
+      const option = document.createElement("option"); option.value = value; option.textContent = labelText; splitMethodSelect.append(option);
+    });
+    const splitEditor = document.createElement("div"); splitEditor.className = "split-editor";
+    const splitPreview = document.createElement("div"); splitPreview.className = "split-preview"; splitPreview.setAttribute("aria-live","polite");
+    const selectedSplitPeople = () => Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked'))
+      .map(input => (data.participants || []).find(person => person.id === input.value)).filter(Boolean);
+    const equalShares = (total, count) => {
+      const base = Math.floor(total / count), remainder = total % count;
+      return Array.from({length:count}, (_,index) => base + (index < remainder ? 1 : 0));
+    };
+    const getSplitShares = (amountCents) => {
+      const people = selectedSplitPeople();
+      if (!people.length) return {valid:false,error:"Choose at least one participant to share this expense."};
+      const method = splitMethodSelect.value;
+      if (method === "equal") {
+        const values = equalShares(amountCents, people.length);
+        return {valid:true,method,shares:people.map((person,index)=>({participant_id:person.id,share_cents:values[index]}))};
+      }
+      const inputs = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
+      if (inputs.length !== people.length) return {valid:false,error:"Complete each participant's share."};
+      if (method === "custom") {
+        const values = inputs.map(input => {
+          const value = Number(input.value);
+          return Number.isFinite(value) && value > 0 && Math.abs(value * 100 - Math.round(value * 100)) < 0.000001 ? Math.round(value * 100) : 0;
+        });
+        if (values.some(value => value <= 0)) return {valid:false,error:"Enter a positive amount for every selected participant."};
+        if (values.reduce((sum,value)=>sum+value,0) !== amountCents) return {valid:false,error:"Exact amounts must add up to the full expense total."};
+        return {valid:true,method,shares:people.map((person,index)=>({participant_id:person.id,share_cents:values[index]}))};
+      }
+      const basisPoints = inputs.map(input => {
+        const value = Number(input.value);
+        return Number.isFinite(value) && value > 0 && Math.abs(value * 100 - Math.round(value * 100)) < 0.000001 ? Math.round(value * 100) : 0;
+      });
+      if (basisPoints.some(value => value <= 0)) return {valid:false,error:"Enter a positive percentage for every selected participant."};
+      if (basisPoints.reduce((sum,value)=>sum+value,0) !== 10000) return {valid:false,error:"Percentages must add up to exactly 100.00%."};
+      let allocated = 0;
+      const shares = people.map((person,index) => {
+        const cents = index === people.length - 1 ? amountCents - allocated : Math.floor(amountCents * basisPoints[index] / 10000);
+        allocated += cents;
+        return {participant_id:person.id,share_cents:cents};
+      });
+      if (shares.some(share => share.share_cents <= 0)) return {valid:false,error:"Each selected participant must receive a positive share. Adjust the percentages."};
+      return {valid:true,method,shares};
+    };
+    const updateSplitPreview = () => {
+      const amountCents = Math.round(Number(amountInput.value) * 100);
+      if (!Number.isSafeInteger(amountCents) || amountCents <= 0) {
+        splitPreview.textContent = "Enter the total amount to see each person's share.";
+        splitPreview.style.color = "var(--muted)";
+        return;
+      }
+      const result = getSplitShares(amountCents);
+      if (!result.valid) {
+        splitPreview.textContent = result.error;
+        splitPreview.style.color = "var(--danger)";
+        return;
+      }
+      const names = new Map((data.participants || []).map(person=>[person.id,person.name]));
+      splitPreview.textContent = result.shares.map(share=>names.get(share.participant_id)+": "+formatMoney(share.share_cents)).join(" · ");
+      splitPreview.style.color = "var(--accent-dark)";
+    };
+    const updateSplitEditor = () => {
+      const previous = new Map(Array.from(splitEditor.querySelectorAll("input[data-split-value]")).map(input=>[input.dataset.participantId,input.value]));
+      splitEditor.replaceChildren();
+      const method = splitMethodSelect.value;
+      if (method === "equal") { updateSplitPreview(); return; }
+      const people = selectedSplitPeople();
+      const amountCents = Math.max(0,Math.round(Number(amountInput.value)*100));
+      const defaults = equalShares(amountCents,Math.max(1,people.length));
+      people.forEach((person,index) => {
+        const row = document.createElement("label"); row.className = "split-share-row";
+        const name = document.createElement("span"); name.textContent = person.name;
+        const input = document.createElement("input"); input.type = "number"; input.min = "0.01"; input.step = "0.01";
+        input.dataset.splitValue = "true"; input.dataset.participantId = person.id;
+        if (previous.has(person.id)) input.value = previous.get(person.id);
+        else if (method === "custom") input.value = (defaults[index]/100).toFixed(2);
+        else input.value = (100/Math.max(1,people.length)).toFixed(2);
+        input.addEventListener("input",updateSplitPreview);
+        row.append(name,input);
+        const suffix = document.createElement("span"); suffix.className = "split-share-suffix"; suffix.textContent = method === "custom" ? trip.base_currency : "%";
+        row.append(suffix); splitEditor.append(row);
+      });
+      updateSplitPreview();
+    };
+    splitMethodSelect.addEventListener("change",updateSplitEditor);
+    splitOptions.addEventListener("change",updateSplitEditor);
+    amountInput.addEventListener("input",updateSplitPreview);
+    updateSplitEditor();
     const notesLabel = document.createElement("label"); notesLabel.textContent = "Notes (optional)";
     const notesInput = document.createElement("textarea"); notesInput.name = "notes"; notesInput.maxLength = 500; notesInput.placeholder = "Anything else to remember?";
     const submit = document.createElement("button"); submit.type = "submit"; submit.textContent = "Save expense";
     const feedback = document.createElement("div"); feedback.className = "expense-feedback"; feedback.setAttribute("aria-live","polite");
-    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,payerLabel,payerSelect,splitLabel,splitOptions,notesLabel,notesInput,submit,feedback);
+    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,payerLabel,payerSelect,splitLabel,splitOptions,splitMethodLabel,splitMethodSelect,splitEditor,splitPreview,notesLabel,notesInput,submit,feedback);
     expenseForm.addEventListener("submit", async event => {
       event.preventDefault();
       feedback.textContent = "";
       const amountValue = Number(amountInput.value);
       const amountCents = Math.round(amountValue * 100);
-      const splitIds = Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked')).map(input => input.value);
       if (!Number.isFinite(amountValue) || amountCents <= 0 || Math.abs(amountValue * 100 - amountCents) > 0.000001) { feedback.textContent = "Please enter a valid amount with no more than two decimal places."; return; }
-      if (!splitIds.length) { feedback.textContent = "Choose at least one participant to split this expense with."; return; }
+      const splitResult = getSplitShares(amountCents);
+      if (!splitResult.valid) { feedback.textContent = splitResult.error; return; }
       submit.disabled = true; submit.textContent = "Saving…";
       try {
         const response = await fetch(API_URL, {
@@ -281,7 +377,7 @@ function renderTrip(data, tripId, token) {
           body:JSON.stringify({
             action:"addExpense",trip_id:tripId,token,description:descriptionInput.value.trim(),
             category:categorySelect.value,amount_cents:amountCents,expense_date:dateInput.value,
-            payer_id:payerSelect.value,split_participant_ids:splitIds,notes:notesInput.value.trim()
+            payer_id:payerSelect.value,split_type:splitResult.method,split_shares:splitResult.shares,notes:notesInput.value.trim()
           })
         });
         const result = await response.json();
