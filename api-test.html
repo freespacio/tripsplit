@@ -3,40 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TripSplit API connection test</title>
+  <title>TripSplit setup test</title>
   <style>
-    body{font-family:system-ui,sans-serif;background:#f5f6f8;color:#20242b;padding:24px}
-    main{max-width:560px;margin:48px auto;background:white;padding:28px;border-radius:16px}
-    #status{padding:14px;border-radius:10px;background:#f0f1f3;overflow-wrap:anywhere}
+    *{box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f5f6f8;color:#20242b;padding:20px;margin:0}
+    main{max-width:560px;margin:28px auto;background:white;padding:26px;border-radius:18px;box-shadow:0 8px 30px #1822300d}
+    h1{margin-top:0}p{line-height:1.5;color:#596273}
+    label{display:block;font-weight:600;margin:16px 0 6px}
+    input,button{width:100%;font:inherit;padding:12px;border-radius:10px}
+    input{border:1px solid #d7dce3;background:white}
+    button{border:0;background:#202b3c;color:white;font-weight:650;margin-top:20px;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}
+    #status{padding:13px;border-radius:10px;background:#f0f1f3;overflow-wrap:anywhere;margin-top:18px;white-space:pre-wrap}
+    .ok{background:#e8f5e9!important}.bad{background:#ffebee!important}
+    a{overflow-wrap:anywhere}
+    small{color:#697386}
   </style>
 </head>
 <body>
 <main>
-  <h1>TripSplit connection test</h1>
-  <p>This page checks that the GitHub-hosted website can reach the TripSplit API.</p>
-  <p id="status">Checking connection…</p>
+  <h1>TripSplit setup test</h1>
+  <p>This checks the live API and creates one temporary test trip in your database. We'll remove the test record after confirming everything works.</p>
+  <div id="status">Checking API connection…</div>
+  <form id="create-form">
+    <label for="trip">Test trip name</label>
+    <input id="trip" value="TripSplit setup test" maxlength="80" required>
+    <label for="organiser">Organiser name</label>
+    <input id="organiser" value="Setup test" maxlength="60" required>
+    <label for="currency">Currency</label>
+    <input id="currency" value="EUR" maxlength="3" required>
+    <button id="submit" type="submit">Create test trip</button>
+  </form>
+  <p><small>The organiser link is a private access key. Don't share this temporary test link.</small></p>
 </main>
 <script>
+const API = "https://bnkndczemfyejtjcwiaj.supabase.co/functions/v1/trip-api";
+const API_KEY = "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm";
 const statusEl = document.getElementById("status");
-fetch("https://bnkndczemfyejtjcwiaj.supabase.co/functions/v1/trip-api", {
-  method: "GET",
-  headers: {
-    "apikey": "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm"
+const submit = document.getElementById("submit");
+fetch(API + "?action=health", {headers:{apikey:API_KEY}})
+  .then(async r => { const d=await r.json(); if(!r.ok || !d.success) throw new Error(d.message||"HTTP "+r.status); statusEl.textContent="API connected successfully."; statusEl.className="ok"; })
+  .catch(e => { statusEl.textContent="API connection failed: "+e.message; statusEl.className="bad"; });
+document.getElementById("create-form").addEventListener("submit", async event => {
+  event.preventDefault(); submit.disabled=true; submit.textContent="Creating…";
+  statusEl.textContent="Creating the test trip…"; statusEl.className="";
+  try {
+    const response=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({
+      action:"createTrip",
+      trip_name:document.getElementById("trip").value,
+      organiser_name:document.getElementById("organiser").value,
+      currency:document.getElementById("currency").value
+    })});
+    const data=await response.json();
+    if(!response.ok || !data.success) throw new Error(data.error||"HTTP "+response.status);
+    statusEl.className="ok";
+    statusEl.innerHTML="Test trip created successfully.\n\nTrip ID: "+data.trip.id+"\nOrganiser: "+data.organiser.name+"\n\n<a href=\""+data.organiser_link+"\">Open the organiser access link</a>\n\nSave no details from this temporary test; we'll remove the test record after verification.";
+    submit.textContent="Test trip created";
+  } catch(error) {
+    statusEl.textContent="Trip creation failed: "+error.message; statusEl.className="bad";
+    submit.disabled=false; submit.textContent="Try again";
   }
-})
-.then(async response => {
-  const body = await response.json();
-  if (!response.ok) throw new Error(body.message || body.error || ("HTTP " + response.status));
-  if (body.success && body.app === "TripSplit") {
-    statusEl.textContent = "Connected successfully — " + body.message;
-    statusEl.style.background = "#e8f5e9";
-  } else {
-    throw new Error("The API responded, but the expected test response was not received.");
-  }
-})
-.catch(error => {
-  statusEl.textContent = "Connection test failed: " + error.message;
-  statusEl.style.background = "#ffebee";
 });
 </script>
 </body>
