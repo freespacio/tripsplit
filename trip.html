@@ -35,6 +35,19 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .expense-form button:disabled{opacity:.6}
 .expense-feedback{font-size:12px;line-height:1.5;color:var(--danger)}
 .expense-empty{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
+.balance-card{grid-column:1/-1}
+.balance-person{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:13px 0;border-top:1px solid #edf0f3}
+.balance-name{font-size:14px;font-weight:700}
+.balance-net{font-size:14px;font-weight:750;text-align:right}
+.balance-detail{font-size:12px;color:var(--muted);line-height:1.5}
+.balance-positive{color:var(--accent-dark)}
+.balance-negative{color:var(--danger)}
+.settlement-list{display:grid;gap:9px;margin-top:17px;padding-top:15px;border-top:1px solid #edf0f3}
+.settlement-list h3{font-size:13px;margin:0 0 3px}
+.settlement-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f7f9fa;border-radius:10px;padding:12px;font-size:13px}
+.settlement-item strong{white-space:nowrap}
+.balance-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}
+
 
 .error{background:#fff0f0;border:1px solid #f0d4d4;color:var(--danger);border-radius:15px;padding:20px;line-height:1.6}.loading{color:var(--muted);padding:55px 15px;text-align:center}
 footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
@@ -282,12 +295,65 @@ function renderTrip(data, tripId, token) {
     expenseCard.append(closed);
   }
 
-  const balanceCard = document.createElement("section"); balanceCard.className = "card";
+  const balanceCard = document.createElement("section"); balanceCard.className = "card balance-card";
   const balanceTitle = document.createElement("h2"); balanceTitle.textContent = "Balances";
-  const balanceHint = document.createElement("p"); balanceHint.className = "hint"; balanceHint.textContent = "See who owes whom";
-  const balancePlaceholder = document.createElement("div"); balancePlaceholder.className = "placeholder";
-  balancePlaceholder.textContent = "Once expenses are added, we'll calculate each person's share and suggest how to settle up.";
-  balanceCard.append(balanceTitle,balanceHint,balancePlaceholder);
+  const balanceHint = document.createElement("p"); balanceHint.className = "hint"; balanceHint.textContent = "What each person has paid compared with their share.";
+  const balancePeople = document.createElement("div");
+  const totals = new Map((data.participants || []).map(person => [person.id,{person,paid:0,share:0,net:0}]));
+  (data.expenses || []).forEach(expense => {
+    const payer = totals.get(expense.payer_id);
+    if (payer) payer.paid += Number(expense.amount_cents) || 0;
+    (expense.shares || []).forEach(share => {
+      const participant = totals.get(share.participant_id);
+      if (participant) participant.share += Number(share.share_cents) || 0;
+    });
+  });
+  const balances = Array.from(totals.values()).map(item => {
+    item.net = item.paid - item.share;
+    return item;
+  });
+  balances.forEach(item => {
+    const row = document.createElement("div"); row.className = "balance-person";
+    const name = document.createElement("div"); name.className = "balance-name"; name.textContent = item.person.name;
+    const net = document.createElement("div"); net.className = "balance-net " + (item.net > 0 ? "balance-positive" : item.net < 0 ? "balance-negative" : "");
+    net.textContent = item.net > 0 ? "Gets back " + formatMoney(item.net) : item.net < 0 ? "Owes " + formatMoney(Math.abs(item.net)) : "Settled";
+    const detail = document.createElement("div"); detail.className = "balance-detail";
+    detail.textContent = "Paid " + formatMoney(item.paid) + " · Share " + formatMoney(item.share);
+    row.append(name,net,detail);
+    balancePeople.append(row);
+  });
+  const settlementList = document.createElement("div"); settlementList.className = "settlement-list";
+  const settlementTitle = document.createElement("h3"); settlementTitle.textContent = "Suggested repayments";
+  settlementList.append(settlementTitle);
+  const debtors = balances.filter(item => item.net < 0).map(item => ({id:item.person.id,name:item.person.name,remaining:-item.net}));
+  const creditors = balances.filter(item => item.net > 0).map(item => ({id:item.person.id,name:item.person.name,remaining:item.net}));
+  let debtorIndex = 0;
+  let creditorIndex = 0;
+  let suggestions = 0;
+  while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+    const debtor = debtors[debtorIndex];
+    const creditor = creditors[creditorIndex];
+    const amount = Math.min(debtor.remaining,creditor.remaining);
+    if (amount > 0) {
+      const line = document.createElement("div"); line.className = "settlement-item";
+      const text = document.createElement("span"); text.textContent = debtor.name + " pays " + creditor.name;
+      const value = document.createElement("strong"); value.textContent = formatMoney(amount);
+      line.append(text,value);
+      settlementList.append(line);
+      suggestions++;
+      debtor.remaining -= amount;
+      creditor.remaining -= amount;
+    }
+    if (debtor.remaining === 0) debtorIndex++;
+    if (creditor.remaining === 0) creditorIndex++;
+  }
+  if (!suggestions) {
+    const none = document.createElement("p"); none.className = "hint"; none.textContent = (data.expenses || []).length ? "Everyone is settled up." : "Add an expense to see suggested repayments.";
+    settlementList.append(none);
+  }
+  const note = document.createElement("p"); note.className = "balance-note";
+  note.textContent = "These are suggested repayments based on recorded expenses. They are not payment records; mark repayments separately once we add settlement tracking.";
+  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,note);
   grid.append(peopleCard,expenseCard,balanceCard);
   app.replaceChildren(hero,grid);
 }
