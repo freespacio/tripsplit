@@ -146,7 +146,12 @@ form.addEventListener("submit", async (event) => {
       try { await navigator.clipboard.writeText(data.organiser_link); copy.textContent = "Copied"; }
       catch { copy.textContent = "Select and copy the link above"; }
     });
-    actions.append(copy);
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "secondary";
+    open.textContent = "Open trip dashboard";
+    open.addEventListener("click", () => { window.location.href = data.organiser_link; });
+    actions.append(copy, open);
     statusBox.replaceChildren(heading, explanation, link, actions);
     form.hidden = true;
     document.querySelector(".panel .note").hidden = true;
