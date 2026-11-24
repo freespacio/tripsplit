@@ -23,7 +23,7 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .expense-form label,.field-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
 .expense-form input,.expense-form select,.expense-form textarea{width:100%;min-height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:var(--ink)}
 .expense-form textarea{min-height:70px;resize:vertical}
-.expense-row{display:grid;grid-template-columns:1fr auto;gap:5px 12px;padding:14px 0;border-top:1px solid #edf0f3}
+.expense-row{display:grid;grid-template-columns:1fr auto;gap:5px 12px;padding:14px 0;border-top:1px solid #edf0f3}.expense-actions{grid-column:1/-1;display:flex;gap:8px;margin-top:4px}.expense-actions button{border:1px solid #d8dfe6;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:12px;font-weight:650;padding:7px 11px}.expense-actions button.delete-expense{color:var(--danger);border-color:#ead1d1}
 .expense-name{font-size:14px;font-weight:700}
 .expense-amount{font-size:15px;font-weight:750;color:var(--accent-dark);white-space:nowrap}
 .expense-meta,.expense-split{font-size:12px;color:var(--muted);line-height:1.5}
@@ -218,6 +218,8 @@ function renderTrip(data, tripId, token) {
   const expenseTitle = document.createElement("h2"); expenseTitle.textContent = "Expenses";
   const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Record shared spending and split it fairly.";
   const expenseList = document.createElement("div");
+  let startEditingExpense = null;
+  let deleteExpenseAction = null;
   const formatMoney = (cents) => new Intl.NumberFormat(undefined, {style:"currency",currency:trip.base_currency || "EUR"}).format((cents || 0) / 100);
   const renderExpenses = (items) => {
     expenseList.replaceChildren();
@@ -237,6 +239,13 @@ function renderTrip(data, tripId, token) {
       const split = document.createElement("div"); split.className = "expense-split";
       split.textContent = (expense.shares || []).map(share => share.participant_name + ": " + formatMoney(share.share_cents)).join(" · ");
       row.append(name,amount,meta,split);
+      const actions = document.createElement("div"); actions.className = "expense-actions";
+      const editButton = document.createElement("button"); editButton.type = "button"; editButton.textContent = "Edit";
+      editButton.addEventListener("click", () => { if (startEditingExpense) startEditingExpense(expense); });
+      const deleteButton = document.createElement("button"); deleteButton.type = "button"; deleteButton.className = "delete-expense"; deleteButton.textContent = "Delete";
+      deleteButton.addEventListener("click", () => { if (deleteExpenseAction) deleteExpenseAction(expense); });
+      actions.append(editButton,deleteButton);
+      row.append(actions);
       expenseList.append(row);
     });
   };
@@ -272,6 +281,8 @@ function renderTrip(data, tripId, token) {
     });
     const splitEditor = document.createElement("div"); splitEditor.className = "split-editor";
     const splitPreview = document.createElement("div"); splitPreview.className = "split-preview"; splitPreview.setAttribute("aria-live","polite");
+    let editingExpenseId = null;
+    let preservedEditShares = null;
     const selectedSplitPeople = () => Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked'))
       .map(input => (data.participants || []).find(person => person.id === input.value)).filter(Boolean);
     const equalShares = (total, count) => {
@@ -280,6 +291,12 @@ function renderTrip(data, tripId, token) {
     };
     const getSplitShares = (amountCents) => {
       const people = selectedSplitPeople();
+      if (preservedEditShares && preservedEditShares.amount === amountCents &&
+          preservedEditShares.method === splitMethodSelect.value &&
+          preservedEditShares.ids.join("|") === people.map(person=>person.id).join("|")) {
+        return {valid:true,method:preservedEditShares.method,shares:preservedEditShares.shares.map(share=>({...share}))};
+      }
+      preservedEditShares = null;
       if (!people.length) return {valid:false,error:"Choose at least one participant to share this expense."};
       const method = splitMethodSelect.value;
       if (method === "equal") {
@@ -366,6 +383,7 @@ function renderTrip(data, tripId, token) {
               other.value = "";
             }
           }
+          preservedEditShares = null;
           updateSplitPreview();
         });
         row.append(name,input);
@@ -382,15 +400,70 @@ function renderTrip(data, tripId, token) {
       }
       updateSplitPreview();
     };
-    splitMethodSelect.addEventListener("change",updateSplitEditor);
-    splitOptions.addEventListener("change",updateSplitEditor);
+
+    startEditingExpense = (expense) => {
+      editingExpenseId = expense.id;
+      preservedEditShares = null;
+      descriptionInput.value = expense.description || "";
+      amountInput.value = (expense.amount_cents / 100).toFixed(2);
+      categorySelect.value = expense.category || "Other";
+      dateInput.value = expense.expense_date || "";
+      payerSelect.value = expense.payer_id || "";
+      notesInput.value = expense.notes || "";
+      const included = new Set((expense.shares || []).map(share => share.participant_id));
+      Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input => { input.checked = included.has(input.value); });
+      splitMethodSelect.value = expense.split_type || "equal";
+      updateSplitEditor();
+      const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
+      const sharesByPerson = new Map((expense.shares || []).map(share => [share.participant_id,share.share_cents]));
+      fields.forEach(input => {
+        const cents = sharesByPerson.get(input.dataset.participantId) || 0;
+        input.value = splitMethodSelect.value === "percentage" ? ((cents / expense.amount_cents) * 100).toFixed(2) : (cents / 100).toFixed(2);
+      });
+      preservedEditShares = {amount:expense.amount_cents,method:splitMethodSelect.value,ids:(expense.shares || []).map(share=>share.participant_id),shares:(expense.shares || []).map(share=>({participant_id:share.participant_id,share_cents:share.share_cents}))};
+      submit.textContent = "Save changes";
+      cancelEditButton.hidden = false;
+      feedback.style.color = "var(--muted)";
+      feedback.textContent = "Editing this expense. Its existing allocations are preserved unless you change the split.";
+      expenseForm.scrollIntoView({behavior:"smooth",block:"center"});
+      descriptionInput.focus({preventScroll:true});
+    };
+    deleteExpenseAction = async (expense) => {
+      if (!window.confirm("Delete this expense? Its allocations will be removed and everyone's balances recalculated.")) return;
+      try {
+        const response = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"deleteExpense",trip_id:tripId,token,expense_id:expense.id})});
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.error || "We couldn't delete this expense.");
+        await refreshTrip();
+      } catch (error) { window.alert(error.message || "We couldn't delete this expense."); }
+    };
+    const refreshTrip = async () => {
+      const refresh = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"getTrip",trip_id:tripId,token})});
+      const refreshed = await refresh.json();
+      if (!refresh.ok || !refreshed.success) throw new Error(refreshed.error || "Saved, but we couldn't refresh the trip.");
+      renderTrip(refreshed,tripId,token);
+    };
+
+    splitMethodSelect.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
+    splitOptions.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
     amountInput.addEventListener("input",updateSplitPreview);
     updateSplitEditor();
     const notesLabel = document.createElement("label"); notesLabel.textContent = "Notes (optional)";
     const notesInput = document.createElement("textarea"); notesInput.name = "notes"; notesInput.maxLength = 500; notesInput.placeholder = "Anything else to remember?";
     const submit = document.createElement("button"); submit.type = "submit"; submit.textContent = "Save expense";
+    const cancelEditButton = document.createElement("button"); cancelEditButton.type = "button"; cancelEditButton.textContent = "Cancel editing"; cancelEditButton.hidden = true;
+    cancelEditButton.style.background = "#fff"; cancelEditButton.style.color = "var(--ink)"; cancelEditButton.style.border = "1px solid var(--line)";
+    cancelEditButton.addEventListener("click",() => {
+      editingExpenseId = null; preservedEditShares = null;
+      expenseForm.reset();
+      dateInput.value = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+      payerSelect.value = access.participant_id;
+      Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input=>input.checked=true);
+      splitMethodSelect.value = "equal"; updateSplitEditor();
+      submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
+    });
     const feedback = document.createElement("div"); feedback.className = "expense-feedback"; feedback.setAttribute("aria-live","polite");
-    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,payerLabel,payerSelect,splitLabel,splitOptions,splitMethodLabel,splitMethodSelect,splitEditor,splitPreview,notesLabel,notesInput,submit,feedback);
+    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,payerLabel,payerSelect,splitLabel,splitOptions,splitMethodLabel,splitMethodSelect,splitEditor,splitPreview,notesLabel,notesInput,submit,cancelEditButton,feedback);
     expenseForm.addEventListener("submit", async event => {
       event.preventDefault();
       feedback.textContent = "";
@@ -405,7 +478,7 @@ function renderTrip(data, tripId, token) {
           method:"POST",
           headers:{"Content-Type":"application/json","apikey":API_KEY},
           body:JSON.stringify({
-            action:"addExpense",trip_id:tripId,token,description:descriptionInput.value.trim(),
+            action:editingExpenseId ? "editExpense" : "addExpense",trip_id:tripId,token,expense_id:editingExpenseId || undefined,description:descriptionInput.value.trim(),
             category:categorySelect.value,amount_cents:amountCents,expense_date:dateInput.value,
             payer_id:payerSelect.value,split_type:splitResult.method,split_shares:splitResult.shares,notes:notesInput.value.trim()
           })
@@ -413,14 +486,8 @@ function renderTrip(data, tripId, token) {
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.error || "We couldn't save this expense.");
         feedback.style.color = "var(--accent-dark)";
-        feedback.textContent = "Expense saved. Refreshing the trip…";
-        const refresh = await fetch(API_URL, {
-          method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},
-          body:JSON.stringify({action:"getTrip",trip_id:tripId,token})
-        });
-        const refreshed = await refresh.json();
-        if (!refresh.ok || !refreshed.success) throw new Error(refreshed.error || "Saved, but we couldn't refresh the expense list.");
-        renderTrip(refreshed,tripId,token);
+        feedback.textContent = editingExpenseId ? "Expense updated. Refreshing the trip…" : "Expense saved. Refreshing the trip…";
+        await refreshTrip();
       } catch (error) {
         feedback.style.color = "var(--danger)";
         feedback.textContent = error.message || "Please try again.";
