@@ -19,6 +19,23 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px}.card h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
 .people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
 .add-form{display:grid;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}.add-form label{font-size:12px;font-weight:700}.add-form input{width:100%;height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:0 11px;font:inherit}.add-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:11px 14px}.add-form button:disabled{opacity:.6}.invite-result{margin-top:12px;padding:12px;border:1px solid #d5e3dd;background:var(--soft);border-radius:10px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.invite-result a{color:var(--accent-dark);font-weight:650}.copy-invite{margin-top:9px;background:white!important;color:var(--accent-dark)!important;border:1px solid #c9d8d2!important}.form-error{color:var(--danger);font-size:12px}.placeholder{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
+.expense-form{display:grid;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}
+.expense-form label,.field-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+.expense-form input,.expense-form select,.expense-form textarea{width:100%;min-height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:var(--ink)}
+.expense-form textarea{min-height:70px;resize:vertical}
+.expense-row{display:grid;grid-template-columns:1fr auto;gap:5px 12px;padding:14px 0;border-top:1px solid #edf0f3}
+.expense-name{font-size:14px;font-weight:700}
+.expense-amount{font-size:15px;font-weight:750;color:var(--accent-dark);white-space:nowrap}
+.expense-meta,.expense-split{font-size:12px;color:var(--muted);line-height:1.5}
+.expense-split{grid-column:1/-1}
+.split-options{display:grid;gap:8px;padding:10px;border:1px solid #e3e8ee;border-radius:10px}
+.split-option{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.split-option input{width:16px;height:16px;min-height:0;accent-color:var(--accent)}
+.expense-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:12px 14px}
+.expense-form button:disabled{opacity:.6}
+.expense-feedback{font-size:12px;line-height:1.5;color:var(--danger)}
+.expense-empty{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
+
 .error{background:#fff0f0;border:1px solid #f0d4d4;color:var(--danger);border-radius:15px;padding:20px;line-height:1.6}.loading{color:var(--muted);padding:55px 15px;text-align:center}
 footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
 @media(max-width:680px){.shell{padding:16px 14px 40px}header{margin-bottom:22px}.hero{padding:24px}.grid{grid-template-columns:1fr;gap:13px}.card{padding:20px}.access{font-size:11px}}
@@ -167,10 +184,103 @@ function renderTrip(data, tripId, token) {
 
   const expenseCard = document.createElement("section"); expenseCard.className = "card";
   const expenseTitle = document.createElement("h2"); expenseTitle.textContent = "Expenses";
-  const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Shared spending for this trip";
-  const expensePlaceholder = document.createElement("div"); expensePlaceholder.className = "placeholder";
-  expensePlaceholder.textContent = "Your expense list will appear here. We're building the expense entry and cost-splitting tools next.";
-  expenseCard.append(expenseTitle,expenseHint,expensePlaceholder);
+  const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Record shared spending and split it fairly.";
+  const expenseList = document.createElement("div");
+  const formatMoney = (cents) => new Intl.NumberFormat(undefined, {style:"currency",currency:trip.base_currency || "EUR"}).format((cents || 0) / 100);
+  const renderExpenses = (items) => {
+    expenseList.replaceChildren();
+    if (!items || !items.length) {
+      const empty = document.createElement("div");
+      empty.className = "expense-empty";
+      empty.textContent = "No expenses yet. Add the first shared expense below.";
+      expenseList.append(empty);
+      return;
+    }
+    items.forEach(expense => {
+      const row = document.createElement("div"); row.className = "expense-row";
+      const name = document.createElement("div"); name.className = "expense-name"; name.textContent = expense.description;
+      const amount = document.createElement("div"); amount.className = "expense-amount"; amount.textContent = formatMoney(expense.amount_cents);
+      const meta = document.createElement("div"); meta.className = "expense-meta";
+      meta.textContent = (expense.category || "Other") + " · " + dateLabel(expense.expense_date) + " · paid by " + (expense.payer_name || "Unknown");
+      const split = document.createElement("div"); split.className = "expense-split";
+      split.textContent = (expense.shares || []).map(share => share.participant_name + ": " + formatMoney(share.share_cents)).join(" · ");
+      row.append(name,amount,meta,split);
+      expenseList.append(row);
+    });
+  };
+  renderExpenses(data.expenses || []);
+  expenseCard.append(expenseTitle,expenseHint,expenseList);
+
+  if (trip.status === "active") {
+    const expenseForm = document.createElement("form"); expenseForm.className = "expense-form";
+    const descriptionLabel = document.createElement("label"); descriptionLabel.textContent = "What was it for?";
+    const descriptionInput = document.createElement("input"); descriptionInput.name = "description"; descriptionInput.maxLength = 120; descriptionInput.placeholder = "e.g. Dinner, fuel, museum tickets"; descriptionInput.required = true;
+    const amountLabel = document.createElement("label"); amountLabel.textContent = "Total amount (" + trip.base_currency + ")";
+    const amountInput = document.createElement("input"); amountInput.name = "amount"; amountInput.type = "number"; amountInput.min = "0.01"; amountInput.max = "1000000"; amountInput.step = "0.01"; amountInput.inputMode = "decimal"; amountInput.placeholder = "0.00"; amountInput.required = true;
+    const categoryLabel = document.createElement("label"); categoryLabel.textContent = "Category";
+    const categorySelect = document.createElement("select"); categorySelect.name = "category";
+    ["Accommodation","Food & drink","Transport","Activities","Shopping","Groceries","Other"].forEach(category => { const option = document.createElement("option"); option.value = category; option.textContent = category; categorySelect.append(option); });
+    const dateLabelEl = document.createElement("label"); dateLabelEl.textContent = "Date";
+    const dateInput = document.createElement("input"); dateInput.name = "expense_date"; dateInput.type = "date"; dateInput.value = new Date().toLocaleDateString("en-CA"); dateInput.required = true;
+    const payerLabel = document.createElement("label"); payerLabel.textContent = "Who paid?";
+    const payerSelect = document.createElement("select"); payerSelect.name = "payer_id"; payerSelect.required = true;
+    (data.participants || []).forEach(person => { const option = document.createElement("option"); option.value = person.id; option.textContent = person.name; if (person.id === access.participant_id) option.selected = true; payerSelect.append(option); });
+    const splitLabel = document.createElement("div"); splitLabel.className = "field-label"; splitLabel.textContent = "Split between";
+    const splitOptions = document.createElement("div"); splitOptions.className = "split-options";
+    (data.participants || []).forEach(person => {
+      const label = document.createElement("label"); label.className = "split-option";
+      const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.name = "split_participant_ids"; checkbox.value = person.id; checkbox.checked = true;
+      const text = document.createElement("span"); text.textContent = person.name;
+      label.append(checkbox,text); splitOptions.append(label);
+    });
+    const notesLabel = document.createElement("label"); notesLabel.textContent = "Notes (optional)";
+    const notesInput = document.createElement("textarea"); notesInput.name = "notes"; notesInput.maxLength = 500; notesInput.placeholder = "Anything else to remember?";
+    const submit = document.createElement("button"); submit.type = "submit"; submit.textContent = "Save expense";
+    const feedback = document.createElement("div"); feedback.className = "expense-feedback"; feedback.setAttribute("aria-live","polite");
+    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,payerLabel,payerSelect,splitLabel,splitOptions,notesLabel,notesInput,submit,feedback);
+    expenseForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      feedback.textContent = "";
+      const amountValue = Number(amountInput.value);
+      const amountCents = Math.round(amountValue * 100);
+      const splitIds = Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked')).map(input => input.value);
+      if (!Number.isFinite(amountValue) || amountCents <= 0 || Math.abs(amountValue * 100 - amountCents) > 0.000001) { feedback.textContent = "Please enter a valid amount with no more than two decimal places."; return; }
+      if (!splitIds.length) { feedback.textContent = "Choose at least one participant to split this expense with."; return; }
+      submit.disabled = true; submit.textContent = "Saving…";
+      try {
+        const response = await fetch(API_URL, {
+          method:"POST",
+          headers:{"Content-Type":"application/json","apikey":API_KEY},
+          body:JSON.stringify({
+            action:"addExpense",trip_id:tripId,token,description:descriptionInput.value.trim(),
+            category:categorySelect.value,amount_cents:amountCents,expense_date:dateInput.value,
+            payer_id:payerSelect.value,split_participant_ids:splitIds,notes:notesInput.value.trim()
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.error || "We couldn't save this expense.");
+        feedback.style.color = "var(--accent-dark)";
+        feedback.textContent = "Expense saved. Refreshing the trip…";
+        const refresh = await fetch(API_URL, {
+          method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},
+          body:JSON.stringify({action:"getTrip",trip_id:tripId,token})
+        });
+        const refreshed = await refresh.json();
+        if (!refresh.ok || !refreshed.success) throw new Error(refreshed.error || "Saved, but we couldn't refresh the expense list.");
+        renderTrip(refreshed,tripId,token);
+      } catch (error) {
+        feedback.style.color = "var(--danger)";
+        feedback.textContent = error.message || "Please try again.";
+      } finally {
+        submit.disabled = false;
+        submit.textContent = "Save expense";
+      }
+    });
+    expenseCard.append(expenseForm);
+  } else {
+    const closed = document.createElement("p"); closed.className = "hint"; closed.style.marginTop = "14px"; closed.textContent = "This trip is not active, so new expenses cannot be added.";
+    expenseCard.append(closed);
+  }
 
   const balanceCard = document.createElement("section"); balanceCard.className = "card";
   const balanceTitle = document.createElement("h2"); balanceTitle.textContent = "Balances";
