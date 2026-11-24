@@ -239,13 +239,15 @@ function renderTrip(data, tripId, token) {
       const split = document.createElement("div"); split.className = "expense-split";
       split.textContent = (expense.shares || []).map(share => share.participant_name + ": " + formatMoney(share.share_cents)).join(" · ");
       row.append(name,amount,meta,split);
-      const actions = document.createElement("div"); actions.className = "expense-actions";
-      const editButton = document.createElement("button"); editButton.type = "button"; editButton.textContent = "Edit";
-      editButton.addEventListener("click", () => { if (startEditingExpense) startEditingExpense(expense); });
-      const deleteButton = document.createElement("button"); deleteButton.type = "button"; deleteButton.className = "delete-expense"; deleteButton.textContent = "Delete";
-      deleteButton.addEventListener("click", () => { if (deleteExpenseAction) deleteExpenseAction(expense); });
-      actions.append(editButton,deleteButton);
-      row.append(actions);
+      if (trip.status === "active") {
+        const actions = document.createElement("div"); actions.className = "expense-actions";
+        const editButton = document.createElement("button"); editButton.type = "button"; editButton.textContent = "Edit";
+        editButton.addEventListener("click", () => { if (startEditingExpense) startEditingExpense(expense); });
+        const deleteButton = document.createElement("button"); deleteButton.type = "button"; deleteButton.className = "delete-expense"; deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", () => { if (deleteExpenseAction) deleteExpenseAction(expense); });
+        actions.append(editButton,deleteButton);
+        row.append(actions);
+      }
       expenseList.append(row);
     });
   };
@@ -421,6 +423,7 @@ function renderTrip(data, tripId, token) {
         input.value = splitMethodSelect.value === "percentage" ? ((cents / expense.amount_cents) * 100).toFixed(2) : (cents / 100).toFixed(2);
       });
       preservedEditShares = {amount:expense.amount_cents,method:splitMethodSelect.value,ids:(expense.shares || []).map(share=>share.participant_id),shares:(expense.shares || []).map(share=>({participant_id:share.participant_id,share_cents:share.share_cents}))};
+      updateSplitPreview();
       submit.textContent = "Save changes";
       cancelEditButton.hidden = false;
       feedback.style.color = "var(--muted)";
