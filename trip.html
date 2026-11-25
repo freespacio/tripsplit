@@ -325,7 +325,8 @@ function renderTrip(data, tripId, token) {
 
   const grid = document.createElement("div"); grid.className = "grid";
   const peopleCard = document.createElement("section"); peopleCard.className = "card";
-  const activeParticipants = (data.participants || []).filter(person => person.is_active !== false);
+  const sortByParticipantName = (a,b) => String(a.name || "").localeCompare(String(b.name || ""),undefined,{sensitivity:"base"});
+  const activeParticipants = (data.participants || []).filter(person => person.is_active !== false).slice().sort(sortByParticipantName);
   const peopleHint = document.createElement("p"); peopleHint.className = "hint"; peopleHint.textContent = activeParticipants.length + " people on this trip";
   const people = document.createElement("div"); people.className = "people";
   const makeParticipantRow = (person) => {
@@ -534,7 +535,10 @@ function renderTrip(data, tripId, token) {
           row.after(panel);
         }
       });
-      row.append(copyButton,linkButton,removeButton);
+      const participantLinkActions = document.createElement("div");
+      participantLinkActions.className = "participant-link-actions";
+      participantLinkActions.append(copyButton,linkButton,removeButton);
+      row.append(participantLinkActions);
     }
     return row;
   };
@@ -676,7 +680,7 @@ function renderTrip(data, tripId, token) {
       const meta = document.createElement("div"); meta.className = "expense-meta";
       meta.append(document.createTextNode((expense.category || "Other") + " · " + dateLabel(expense.expense_date) + (expense.expense_time ? " · " + String(expense.expense_time).slice(0,5) : "") + " · paid by "),participantPill(expense.payer_name,expense.payer_id));
       const split = document.createElement("div"); split.className = "expense-split";
-      (expense.shares || []).forEach((share,index) => {
+      (expense.shares || []).slice().sort(sortByParticipantName).forEach((share,index) => {
         if (index) split.append(document.createTextNode(" · "));
         const sharePill = participantPill(share.participant_name,share.participant_id);
         sharePill.append(document.createTextNode(" · " + formatMoney(share.share_cents)));
@@ -999,6 +1003,7 @@ function renderTrip(data, tripId, token) {
     item.net = item.paid - item.share + item.settlementAdjustment;
     return item;
   });
+  balances.sort((a,b) => sortByParticipantName(a.person,b.person));
   balances.forEach(item => {
     const row = document.createElement("div"); row.className = "balance-person";
     const name = document.createElement("div"); name.className = "balance-name"; name.append(participantPill(item.person.name,item.person.id));
@@ -1012,8 +1017,8 @@ function renderTrip(data, tripId, token) {
   const settlementList = document.createElement("div"); settlementList.className = "settlement-list";
   const settlementTitle = document.createElement("h3"); settlementTitle.textContent = "Suggested repayments";
   settlementList.append(settlementTitle);
-  const debtors = balances.filter(item => item.net < 0).map(item => ({id:item.person.id,name:item.person.name,remaining:-item.net}));
-  const creditors = balances.filter(item => item.net > 0).map(item => ({id:item.person.id,name:item.person.name,remaining:item.net}));
+  const debtors = balances.filter(item => item.net < 0).map(item => ({id:item.person.id,name:item.person.name,remaining:-item.net})).sort(sortByParticipantName);
+  const creditors = balances.filter(item => item.net > 0).map(item => ({id:item.person.id,name:item.person.name,remaining:item.net})).sort(sortByParticipantName);
   let debtorIndex = 0;
   let creditorIndex = 0;
   let suggestions = 0;
@@ -1298,7 +1303,7 @@ function renderTrip(data, tripId, token) {
     else rows.forEach(values=>{const row=document.createElement("tr");values.forEach(value=>{const cell=document.createElement("td");cell.textContent=value==null?"":String(value);row.append(cell);});tbody.append(row);});
     table.append(thead,tbody);report.append(table);
   };
-  addReportTable("Participants",["Name","Role","Status"],(data.participants||[]).map(person=>[
+  addReportTable("Participants",["Name","Role","Status"],(data.participants||[]).slice().sort(sortByParticipantName).map(person=>[
     person.name||"",person.role||(person.is_organiser?"Organiser":"Participant"),person.is_active===false?"Removed":(person.status||"Active")
   ]));
   addReportTable("Expenses",["Date","Time","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
