@@ -59,7 +59,7 @@
       <div class="brand">Trip<span>Split</span></div>
     </header>
     <div id="offline-banner" class="offline-banner" role="status" aria-live="polite" hidden>You’re offline. Connect to Wi-Fi or mobile data to load or update your trips.</div>
-    <section id="saved-section" class="saved-section" aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div><div class="join-panel"><h3>Join an existing trip</h3><p class="sub">Paste your private trip link to add it to My Trips on this device.</p><form id="join-form"><label for="join-link">Private trip link</label><input id="join-link" type="url" inputmode="url" autocomplete="url" placeholder="https://…/trip.html#trip=…&token=…" required><button class="primary" id="join-submit" type="submit">Add trip</button></form><div id="join-status" class="status" role="status" aria-live="polite"></div></div><div class="join-panel" style="margin-top:16px"><h3>Restore a JSON backup</h3><p class="sub">Import a TripSplit backup as a new trip. This will not replace or change any existing trip.</p><form id="restore-form"><label for="restore-file">TripSplit backup file (.json)</label><input id="restore-file" type="file" accept=".json,application/json" required><button class="primary" id="restore-submit" type="submit">Restore backup</button></form><div id="restore-status" class="status" role="status" aria-live="polite"></div></div></section>
+    <section id="saved-section" class="saved-section" aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div><div class="join-panel"><h3>Join an existing trip</h3><p class="sub">Paste your private trip link to add it to My Trips on this device.</p><form id="join-form"><label for="join-link">Private trip link</label><input id="join-link" type="url" inputmode="url" autocomplete="url" placeholder="https://…/trip.html#trip=…&token=…" required><button class="primary" id="join-submit" type="submit">Add trip</button></form><div id="join-status" class="status" role="status" aria-live="polite"></div></div><div class="join-panel" style="margin-top:16px"><h3>Restore a JSON backup</h3><p class="sub">Import a TripSplit backup as a new trip. This will not replace or change any existing trip.</p><form id="restore-form"><label for="restore-file">TripSplit backup file (.json)</label><input id="restore-file" type="file" accept=".json,application/json" required><div id="restore-turnstile" style="margin:16px 0"></div><button class="primary" id="restore-submit" type="submit">Restore backup</button></form><div id="restore-status" class="status" role="status" aria-live="polite"></div></div></section>
     <main class="hero">
       <section>
         <p class="eyebrow">Travel together. Settle up simply.</p>
@@ -90,6 +90,7 @@
             <div><label for="start-date">Start date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="start-date" name="start_date" type="date"></div>
             <div><label for="end-date">End date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="end-date" name="end_date" type="date"></div>
           </div>
+          <div id="create-turnstile" style="margin:16px 0"></div>
           <button class="primary" id="submit" type="submit">Create trip <span aria-hidden="true">→</span></button>
         </form>
         <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -98,6 +99,33 @@
     </main>
     <footer>TripSplit · Shared trip expenses, made simple.</footer>
   </div>
+<script>
+window.tripSplitTurnstileTokens = { create: null, restore: null };
+window.tripSplitTurnstileWidgets = { create: null, restore: null };
+window.tripSplitTurnstileOnLoad = function () {
+  if (!window.turnstile) return;
+  const sitekey = "0x4AAAAAAGScT8Wtu1uKwcua";
+  const renderWidget = (container, action, key) => {
+    const element = document.getElementById(container);
+    if (!element) return;
+    window.tripSplitTurnstileWidgets[key] = window.turnstile.render(element, {
+      sitekey,
+      action,
+      callback: token => { window.tripSplitTurnstileTokens[key] = token; },
+      "expired-callback": () => { window.tripSplitTurnstileTokens[key] = null; },
+      "error-callback": () => { window.tripSplitTurnstileTokens[key] = null; }
+    });
+  };
+  renderWidget("create-turnstile", "create_trip", "create");
+  renderWidget("restore-turnstile", "restore_trip", "restore");
+};
+window.tripSplitResetTurnstile = function (key) {
+  window.tripSplitTurnstileTokens[key] = null;
+  const widget = window.tripSplitTurnstileWidgets[key];
+  if (window.turnstile && widget !== null) window.turnstile.reset(widget);
+};
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=tripSplitTurnstileOnLoad&render=explicit" async defer></script>
 <script>
 const API_URL = "https://bnkndczemfyejtjcwiaj.supabase.co/functions/v1/trip-api";
 const API_KEY = "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm";
@@ -160,10 +188,11 @@ document.getElementById("restore-form").addEventListener("submit", async event =
  if(!file){box.className="status error";box.textContent="Choose a JSON backup file first.";return;}
  if(file.size>900000){box.className="status error";box.textContent="This backup is too large. The maximum file size is 900 KB.";return;}
  if(!confirm("Restore this backup as a new trip? Existing trips will not be changed."))return;
+ if(!window.tripSplitTurnstileTokens.restore){box.className="status error";box.textContent="Please complete the security check before restoring your backup.";return;}
  button.disabled=true;button.textContent="Restoring backup…";
  try{
   const backup=JSON.parse(await file.text());
-  const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"restoreTrip",backup})});
+  const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"restoreTrip",backup,turnstile_token:window.tripSplitTurnstileTokens.restore})});
   const result=await response.json();
   if(!response.ok||!result.success||!result.organiser_link)throw new Error(result.error||"We couldn't restore this backup.");
   const restoredUrl=new URL(result.organiser_link),restoredParams=new URLSearchParams(restoredUrl.hash.slice(1));
@@ -177,7 +206,7 @@ document.getElementById("restore-form").addEventListener("submit", async event =
  }catch(error){
   box.className="status error";
   box.textContent=error instanceof SyntaxError?"That file is not valid JSON. Please choose a TripSplit backup file.":(error.message||"We couldn't restore this backup. Please try again.");
- }finally{button.disabled=false;button.textContent="Restore backup";}
+ }finally{button.disabled=false;button.textContent="Restore backup";window.tripSplitResetTurnstile("restore");}
 });
 
 renderSavedTrips();
@@ -232,6 +261,10 @@ form.addEventListener("submit", async (event) => {
     showError("The end date cannot be before the start date.");
     return;
   }
+  if (!window.tripSplitTurnstileTokens.create) {
+    showError("Please complete the security check before creating your trip.");
+    return;
+  }
   submit.disabled = true;
   submit.textContent = "Creating your trip…";
   statusBox.className = "status";
@@ -242,6 +275,7 @@ form.addEventListener("submit", async (event) => {
       headers: {"Content-Type":"application/json", "apikey":API_KEY},
       body: JSON.stringify({
         action:"createTrip",
+        turnstile_token:window.tripSplitTurnstileTokens.create,
         trip_name:tripName,
         organiser_name:organiserName,
         currency:document.getElementById("currency").value,
@@ -284,6 +318,8 @@ form.addEventListener("submit", async (event) => {
     showError(error.message || "Something went wrong. Please try again.");
     submit.disabled = false;
     submit.innerHTML = 'Create trip <span aria-hidden="true">→</span>';
+  } finally {
+    window.tripSplitResetTurnstile("create");
   }
 });
 </script>
