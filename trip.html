@@ -41,6 +41,7 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .expense-form input[type=date],.expense-form input[type=time]{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;}
 .expense-form textarea{min-height:70px;resize:vertical}
 .expense-row{display:grid;grid-template-columns:1fr auto;gap:5px 12px;padding:14px 0;border-top:1px solid #edf0f3}.expense-actions{grid-column:1/-1;display:flex;gap:8px;margin-top:4px}.expense-actions button{border:1px solid #d8dfe6;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:12px;font-weight:650;padding:7px 11px}.expense-actions button.delete-expense{color:var(--danger);border-color:#ead1d1}
+.expense-sort-row{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin:12px 0 2px}.expense-sort-row label{font-size:12px;font-weight:650;color:var(--muted)}.expense-sort-select{max-width:100%;min-width:0;border:1px solid #d8dfe6;border-radius:9px;background:#fff;color:var(--ink);font:inherit;font-size:12px;padding:8px 10px;min-height:38px}
 .expense-name{font-size:14px;font-weight:700}
 .expense-amount{font-size:15px;font-weight:750;color:var(--accent-dark);white-space:nowrap}
 .expense-meta,.expense-split{font-size:12px;color:var(--muted);line-height:1.8}.expense-meta .participant-pill,.expense-split .participant-pill{margin:2px 2px 2px 0}
@@ -639,6 +640,11 @@ function renderTrip(data, tripId, token) {
   closeExpenseDialog.addEventListener("click",() => expenseDialog.close());
   expenseDialogHeader.append(expenseDialogTitle,closeExpenseDialog); expenseDialog.append(expenseDialogHeader);
   const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Record shared spending and split it fairly.";
+  const expenseSortRow = document.createElement("div"); expenseSortRow.className = "expense-sort-row";
+  const expenseSortLabel = document.createElement("label"); expenseSortLabel.htmlFor = "expense-sort"; expenseSortLabel.textContent = "Sort by";
+  const expenseSortSelect = document.createElement("select"); expenseSortSelect.id = "expense-sort"; expenseSortSelect.className = "expense-sort-select";
+  [["expense-date","Expense date (newest first)"],["date-entered","Date entered (newest first)"],["category","Expense type (A–Z)"],["payer","Payer (A–Z)"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; expenseSortSelect.append(option); });
+  expenseSortRow.append(expenseSortLabel,expenseSortSelect);
   const exportExpenses = document.createElement("button");
   exportExpenses.type = "button";
   exportExpenses.className = "export-button";
@@ -664,16 +670,38 @@ function renderTrip(data, tripId, token) {
   let startEditingExpense = null;
   let deleteExpenseAction = null;
   const formatMoney = (cents) => new Intl.NumberFormat(undefined, {style:"currency",currency:trip.base_currency || "EUR"}).format((cents || 0) / 100);
+  const compareExpenseDate = (a,b) => {
+    const dateCompare = String(b.expense_date || "").localeCompare(String(a.expense_date || ""));
+    if (dateCompare) return dateCompare;
+    const timeCompare = String(b.expense_time || "").localeCompare(String(a.expense_time || ""));
+    if (timeCompare) return timeCompare;
+    return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+  };
   const renderExpenses = (items) => {
     expenseList.replaceChildren();
-    if (!items || !items.length) {
+    const sortedItems = (items || []).slice();
+    const sortMode = expenseSortSelect.value;
+    if (sortMode === "date-entered") {
+      sortedItems.sort((a,b) => {
+        const aTime = Date.parse(a.created_at || "") || 0;
+        const bTime = Date.parse(b.created_at || "") || 0;
+        return bTime - aTime || compareExpenseDate(a,b);
+      });
+    } else if (sortMode === "category") {
+      sortedItems.sort((a,b) => String(a.category || "Other").localeCompare(String(b.category || "Other"),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
+    } else if (sortMode === "payer") {
+      sortedItems.sort((a,b) => String(a.payer_name || "").localeCompare(String(b.payer_name || ""),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
+    } else {
+      sortedItems.sort(compareExpenseDate);
+    }
+    if (!sortedItems.length) {
       const empty = document.createElement("div");
       empty.className = "expense-empty";
       empty.textContent = "No expenses yet. Tap + to add the first shared expense.";
       expenseList.append(empty);
       return;
     }
-    items.forEach(expense => {
+    sortedItems.forEach(expense => {
       const row = document.createElement("div"); row.className = "expense-row";
       const name = document.createElement("div"); name.className = "expense-name"; name.textContent = expense.description;
       const amount = document.createElement("div"); amount.className = "expense-amount"; amount.textContent = formatMoney(expense.amount_cents);
@@ -699,8 +727,9 @@ function renderTrip(data, tripId, token) {
       expenseList.append(row);
     });
   };
+  expenseSortSelect.addEventListener("change",() => renderExpenses(data.expenses || []));
   renderExpenses(data.expenses || []);
-  expenseCard.append(expenseTitle,expenseHint,expenseList);
+  expenseCard.append(expenseTitle,expenseHint,expenseSortRow,expenseList);
 
   if (trip.status === "active") {
     expenseCard.insertBefore(newExpenseButton,expenseList);
