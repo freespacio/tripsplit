@@ -81,6 +81,25 @@ footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-si
 @media(max-width:680px){.shell{padding:16px 14px 40px}header{margin-bottom:22px}.hero{padding:24px}.grid{grid-template-columns:1fr;gap:13px}.card{padding:20px}.access{font-size:11px}.person{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px}.person-name{min-width:0;overflow-wrap:anywhere}.role{margin-left:0}.participant-link-button{grid-row:2}.participant-link-result{margin-left:0}.settlement-item,.settlement-record{flex-wrap:wrap}.settlement-item strong,.settlement-record strong{margin-left:auto}}
 .offline-banner{margin:0 0 18px;padding:12px 15px;border:1px solid #e8c98a;border-radius:12px;background:#fff7e8;color:#76521b;font-size:14px;line-height:1.5}
 .offline-banner[hidden]{display:none}
+
+.print-report{display:none}
+@media print{
+@page{size:A4;margin:15mm}
+body{background:#fff!important;color:#17202b!important;font-size:10pt}
+.shell{max-width:none;padding:0;margin:0}
+.shell>header,.shell>footer,#app>.hero,#app>.grid{display:none!important}
+#app{display:block!important}
+.print-report{display:block!important}
+.print-report h1{font-size:25pt;letter-spacing:-.6px;margin:0 0 5mm}
+.print-report h2{font-size:14pt;margin:8mm 0 3mm;border-bottom:1px solid #d8dfe6;padding-bottom:2mm;break-after:avoid}
+.print-report p{margin:2mm 0;color:#485563}
+.print-report table{width:100%;border-collapse:collapse;margin:2mm 0 5mm;font-size:8.5pt;break-inside:auto}
+.print-report th,.print-report td{border:1px solid #dce2e8;padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.print-report th{background:#f0f3f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.print-report tr{break-inside:avoid}
+.print-report .report-meta{font-size:9pt;margin-bottom:6mm}
+.print-report .report-footer{font-size:8pt;color:#687483;margin-top:8mm;border-top:1px solid #dce2e8;padding-top:3mm}
+}
 </style>
 </head>
 <body>
@@ -906,8 +925,57 @@ function renderTrip(data, tripId, token) {
   const note = document.createElement("p"); note.className = "balance-note";
   note.textContent = "Only repayments you confirm as already made are recorded. Recorded repayments adjust balances but never change the original expenses.";
   balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,history,settlementForm,note);
+  const printButton = document.createElement("button");
+  printButton.type = "button";
+  printButton.className = "export-button";
+  printButton.textContent = "Download PDF report";
+  printButton.addEventListener("click", () => window.print());
+  hero.append(printButton);
+
+  const report = document.createElement("section");
+  report.className = "print-report";
+  const reportTitle = document.createElement("h1");
+  reportTitle.textContent = trip.name;
+  const reportMeta = document.createElement("p");
+  reportMeta.className = "report-meta";
+  reportMeta.textContent = [
+    "TripSplit expense report",
+    trip.base_currency || "EUR",
+    [dateLabel(trip.start_date),dateLabel(trip.end_date)].filter(Boolean).join(" – "),
+    "Status: " + (trip.status || "active"),
+    "Generated: " + new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date())
+  ].filter(Boolean).join(" · ");
+  report.append(reportTitle,reportMeta);
+  const addReportTable = (heading,headers,rows) => {
+    const sectionTitle=document.createElement("h2");sectionTitle.textContent=heading;report.append(sectionTitle);
+    const table=document.createElement("table"),thead=document.createElement("thead"),headerRow=document.createElement("tr");
+    headers.forEach(value=>{const cell=document.createElement("th");cell.textContent=value;headerRow.append(cell);});
+    thead.append(headerRow);
+    const tbody=document.createElement("tbody");
+    if(!rows.length){const row=document.createElement("tr"),cell=document.createElement("td");cell.colSpan=headers.length;cell.textContent="No records";row.append(cell);tbody.append(row);}
+    else rows.forEach(values=>{const row=document.createElement("tr");values.forEach(value=>{const cell=document.createElement("td");cell.textContent=value==null?"":String(value);row.append(cell);});tbody.append(row);});
+    table.append(thead,tbody);report.append(table);
+  };
+  addReportTable("Participants",["Name","Role","Status"],(data.participants||[]).map(person=>[
+    person.name||"",person.role||(person.is_organiser?"Organiser":"Participant"),person.status||"Active"
+  ]));
+  addReportTable("Expenses",["Date","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
+    item.expense_date||"",item.description||"",item.category||"Other",item.payer_name||"",formatMoney(item.amount_cents),
+    (item.shares||[]).map(share=>share.participant_name+": "+formatMoney(share.share_cents)).join("; ")
+  ]));
+  addReportTable("Balances",["Participant","Expenses paid","Share of expenses","Repayment adjustment","Net balance"],balances.map(item=>[
+    item.person.name,formatMoney(item.paid),formatMoney(item.share),formatMoney(item.settlementAdjustment),
+    item.net>0?"Gets back "+formatMoney(item.net):item.net<0?"Owes "+formatMoney(Math.abs(item.net)):"Settled"
+  ]));
+  addReportTable("Recorded repayments",["Date","Paid by","Received by","Amount","Notes"],(data.settlements||[]).filter(item=>item.status==="paid").map(item=>[
+    item.settlement_date||"",item.from_name||"",item.to_name||"",formatMoney(item.amount_cents),item.notes||""
+  ]));
+  const reportFooter=document.createElement("p");reportFooter.className="report-footer";
+  reportFooter.textContent="Generated by TripSplit. Amounts are shown in "+(trip.base_currency||"EUR")+". Recorded repayments adjust balances and are not included as expenses.";
+  report.append(reportFooter);
+
   grid.append(peopleCard,expenseCard,balanceCard);
-  app.replaceChildren(hero,grid);
+  app.replaceChildren(hero,grid,report);
 }
 async function openTrip() {
   const params = new URLSearchParams(location.hash.slice(1));
