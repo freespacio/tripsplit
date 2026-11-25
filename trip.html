@@ -635,9 +635,10 @@ function renderTrip(data, tripId, token) {
     });
   };
   renderExpenses(data.expenses || []);
-  expenseCard.append(expenseTitle,expenseHint,newExpenseButton,exportExpenses,expenseList);
+  expenseCard.append(expenseTitle,expenseHint,exportExpenses,expenseList);
 
   if (trip.status === "active") {
+    expenseCard.insertBefore(newExpenseButton,exportExpenses);
     const expenseForm = document.createElement("form"); expenseForm.className = "expense-form";
     const descriptionLabel = document.createElement("label"); descriptionLabel.textContent = "What was it for?";
     const descriptionInput = document.createElement("input"); descriptionInput.name = "description"; descriptionInput.maxLength = 120; descriptionInput.placeholder = "e.g. Dinner, fuel, museum tickets"; descriptionInput.required = true;
