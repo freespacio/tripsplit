@@ -157,6 +157,18 @@ function downloadCsv(filename, rows) {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function downloadJson(filename, value) {
+  const content = JSON.stringify(value, null, 2);
+  const blob = new Blob([content], {type:"application/json;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 function safeFilename(value) {
   return (value || "TripSplit").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9-_]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,60) || "TripSplit";
 }
@@ -932,6 +944,60 @@ function renderTrip(data, tripId, token) {
   const note = document.createElement("p"); note.className = "balance-note";
   note.textContent = "Only repayments you confirm as already made are recorded. Recorded repayments adjust balances but never change the original expenses.";
   balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,history,settlementForm,note);
+  const backupButton = document.createElement("button");
+  backupButton.type = "button";
+  backupButton.className = "export-button";
+  backupButton.textContent = "Download JSON backup";
+  backupButton.addEventListener("click", () => {
+    const backup = {
+      format: "TripSplit backup",
+      schema_version: 1,
+      exported_at: new Date().toISOString(),
+      trip: {
+        name: trip.name || "",
+        base_currency: trip.base_currency || "EUR",
+        start_date: trip.start_date || null,
+        end_date: trip.end_date || null,
+        status: trip.status || "active"
+      },
+      participants: (data.participants || []).map(person => ({
+        id: person.id,
+        name: person.name || "",
+        role: person.role || (person.is_organiser ? "organiser" : "participant"),
+        status: person.status || "active",
+        is_organiser: Boolean(person.is_organiser)
+      })),
+      expenses: (data.expenses || []).map(item => ({
+        id: item.id,
+        description: item.description || "",
+        category: item.category || "Other",
+        amount_cents: Number(item.amount_cents || 0),
+        expense_date: item.expense_date || null,
+        payer_id: item.payer_id,
+        payer_name: item.payer_name || "",
+        split_type: item.split_type || "equal",
+        shares: (item.shares || []).map(share => ({
+          participant_id: share.participant_id,
+          participant_name: share.participant_name || "",
+          share_cents: Number(share.share_cents || 0)
+        })),
+        notes: item.notes || ""
+      })),
+      settlements: (data.settlements || []).map(item => ({
+        id: item.id,
+        from_participant_id: item.from_participant_id,
+        to_participant_id: item.to_participant_id,
+        from_name: item.from_name || "",
+        to_name: item.to_name || "",
+        amount_cents: Number(item.amount_cents || 0),
+        settlement_date: item.settlement_date || null,
+        status: item.status || "paid",
+        notes: item.notes || ""
+      }))
+    };
+    downloadJson(safeFilename(trip.name) + "-backup.json", backup);
+  });
+  hero.append(backupButton);
   const printButton = document.createElement("button");
   printButton.type = "button";
   printButton.className = "export-button";
