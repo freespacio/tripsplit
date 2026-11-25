@@ -547,7 +547,9 @@ function renderTrip(data, tripId, token) {
       const split = document.createElement("div"); split.className = "expense-split";
       (expense.shares || []).forEach((share,index) => {
         if (index) split.append(document.createTextNode(" · "));
-        split.append(participantPill(share.participant_name,share.participant_id),document.createTextNode(": " + formatMoney(share.share_cents)));
+        const sharePill = participantPill(share.participant_name,share.participant_id);
+        sharePill.append(document.createTextNode(" · " + formatMoney(share.share_cents)));
+        split.append(sharePill);
       });
       row.append(name,amount,meta,split);
       if (trip.status === "active") {
