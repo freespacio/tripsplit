@@ -1147,7 +1147,7 @@ function renderTrip(data, tripId, token) {
 
   const note = document.createElement("p"); note.className = "balance-note";
   note.textContent = "Only repayments you confirm as already made are recorded. Recorded repayments adjust balances but never change the original expenses.";
-  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,history,repaymentButton,settlementDialog,note);
+  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,repaymentButton,history,settlementDialog,note);
   const backupButton = document.createElement("button");
   backupButton.type = "button";
   backupButton.className = "export-button";
