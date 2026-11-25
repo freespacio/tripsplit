@@ -217,6 +217,12 @@ function participantPill(name,id) {
 function renderTrip(data, tripId, token) {
   const trip = data.trip;
   const access = data.access;
+  const refreshTrip = async () => {
+    const refresh = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"getTrip",trip_id:tripId,token})});
+    const refreshed = await refresh.json();
+    if (!refresh.ok || !refreshed.success) throw new Error(refreshed.error || "Saved, but we couldn't refresh the trip.");
+    renderTrip(refreshed,tripId,token);
+  };
   document.title = trip.name + " — TripSplit";
   const accessLabel = document.getElementById("access-label");
   accessLabel.replaceChildren();
@@ -799,13 +805,6 @@ function renderTrip(data, tripId, token) {
         await refreshTrip();
       } catch (error) { window.alert(error.message || "We couldn't delete this expense."); }
     };
-    const refreshTrip = async () => {
-      const refresh = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"getTrip",trip_id:tripId,token})});
-      const refreshed = await refresh.json();
-      if (!refresh.ok || !refreshed.success) throw new Error(refreshed.error || "Saved, but we couldn't refresh the trip.");
-      renderTrip(refreshed,tripId,token);
-    };
-
     splitMethodSelect.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
     splitOptions.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
     amountInput.addEventListener("input",updateSplitPreview);
