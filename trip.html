@@ -497,6 +497,7 @@ function renderTrip(data, tripId, token) {
       addInput.value = "";
       people.append(makeParticipantRow({id:result.participant.id,name:result.participant.name,role:result.participant.role}));
       peopleHint.textContent = (people.children.length) + " people on this trip";
+      participantsButton.textContent = "Participants · " + people.children.length;
       rememberTrip({trip_id:tripId,token,name:trip.name,currency:trip.base_currency,start_date:trip.start_date||null,end_date:trip.end_date||null,status:trip.status,role:access.role,participant_name:access.participant_name||"",participant_names:[...(data.participants||[]).map(person=>person.name),result.participant.name].filter(Boolean)});
     } catch (error) {
       const errorText = document.createElement("div");
