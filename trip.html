@@ -76,11 +76,14 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .error{background:#fff0f0;border:1px solid #f0d4d4;color:var(--danger);border-radius:15px;padding:20px;line-height:1.6}.loading{color:var(--muted);padding:55px 15px;text-align:center}
 footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
 @media(max-width:680px){.shell{padding:16px 14px 40px}header{margin-bottom:22px}.hero{padding:24px}.grid{grid-template-columns:1fr;gap:13px}.card{padding:20px}.access{font-size:11px}}
+.offline-banner{margin:0 0 18px;padding:12px 15px;border:1px solid #e8c98a;border-radius:12px;background:#fff7e8;color:#76521b;font-size:14px;line-height:1.5}
+.offline-banner[hidden]{display:none}
 </style>
 </head>
 <body>
 <div class="shell">
 <header><div class="brand"><div class="mark" aria-hidden="true">T</div><div>Trip<span>Split</span></div></div><a class="dashboard-link" href="index.html">← My Trips</a><div class="access" id="access-label">Private trip</div></header>
+<div id="offline-banner" class="offline-banner" role="status" aria-live="polite" hidden>You’re offline. Connect to Wi-Fi or mobile data to load your trip.</div>
 <main id="app"><div class="loading">Opening your trip…</div></main>
 <footer>TripSplit · Shared trip expenses, made simple.</footer>
 </div>
@@ -88,18 +91,25 @@ footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-si
 const API_URL = "https://bnkndczemfyejtjcwiaj.supabase.co/functions/v1/trip-api";
 const API_KEY = "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm";
 const app = document.getElementById("app");
+const offlineBanner = document.getElementById("offline-banner");
+function updateOfflineStatus(){offlineBanner.hidden=navigator.onLine;}
+window.addEventListener("online",updateOfflineStatus);
+window.addEventListener("offline",updateOfflineStatus);
+updateOfflineStatus();
 const TRIPS_KEY="tripsplit_saved_trips_v1";
 function rememberTrip(record){try{const stored=JSON.parse(localStorage.getItem(TRIPS_KEY)||"[]");const items=Array.isArray(stored)?stored:[];localStorage.setItem(TRIPS_KEY,JSON.stringify([{...record,saved_at:new Date().toISOString()},...items.filter(x=>x.trip_id!==record.trip_id)].slice(0,100)))}catch(error){console.warn("Unable to save trip on this device.")}}
 
 function showError(message) {
+  const offline = !navigator.onLine || /failed to fetch|networkerror|load failed/i.test(message||"");
   const panel = document.createElement("section");
   panel.className = "error";
   const title = document.createElement("strong");
-  title.textContent = "We couldn't open this trip";
+  title.textContent = offline ? "You’re offline" : "We couldn’t open this trip";
   const detail = document.createElement("p");
-  detail.textContent = message;
+  detail.textContent = offline ? "Connect to Wi-Fi or mobile data to load your trip. Your private trip data is not available offline." : message;
   detail.style.margin = "8px 0 0";
   panel.append(title, detail);
+  if(offline){const retry=document.createElement("button");retry.type="button";retry.textContent="Try again";retry.style.marginTop="12px";retry.addEventListener("click",()=>location.reload());panel.append(retry);}
   app.replaceChildren(panel);
 }
 function dateLabel(value) {
