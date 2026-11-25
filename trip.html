@@ -755,7 +755,7 @@ async function openTrip() {
     });
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || "This link may be invalid or revoked.");
-    rememberTrip({trip_id:tripId,token,name:data.trip.name,currency:data.trip.base_currency,start_date:data.trip.start_date||null,end_date:data.trip.end_date||null,status:data.trip.status,role:data.access.role,participant_name:data.access.participant_name||""});
+    rememberTrip({trip_id:tripId,token,name:data.trip.name,currency:data.trip.base_currency,start_date:data.trip.start_date||null,end_date:data.trip.end_date||null,status:data.trip.status,role:data.access.role,participant_name:data.access.participant_name||"",participant_names:(data.participants||[]).map(person=>person.name).filter(Boolean)});
     renderTrip(data, tripId, token);
   } catch(error) {
     showError(error.message || "Please check your connection and try again.");
