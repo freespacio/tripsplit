@@ -124,7 +124,7 @@ function renderTrip(data, tripId, token) {
   accessBody.setAttribute("d","M5 20a7 7 0 0 1 14 0");
   accessIcon.append(accessHead,accessBody);
   const accessName = document.createElement("span");
-  accessName.textContent = access.name || (access.role === "organiser" ? "Organiser" : "Participant");
+  accessName.textContent = access.participant_name || (access.role === "organiser" ? "Organiser" : "Participant");
   accessLabel.setAttribute("aria-label","Viewing as " + accessName.textContent);
   accessLabel.append(accessIcon,accessName);
   const hero = document.createElement("section");
