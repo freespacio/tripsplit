@@ -249,7 +249,6 @@ function renderTrip(data, tripId, token) {
 
   const grid = document.createElement("div"); grid.className = "grid";
   const peopleCard = document.createElement("section"); peopleCard.className = "card";
-  const peopleTitle = document.createElement("h2"); peopleTitle.textContent = "Participants";
   const peopleHint = document.createElement("p"); peopleHint.className = "hint"; peopleHint.textContent = (data.participants || []).length + " people on this trip";
   const people = document.createElement("div"); people.className = "people";
   const makeParticipantRow = (person) => {
@@ -437,7 +436,7 @@ function renderTrip(data, tripId, token) {
     return row;
   };
   (data.participants || []).forEach(person => people.append(makeParticipantRow(person)));
-  peopleCard.append(peopleTitle,peopleHint,people);
+  peopleCard.append(peopleHint,people);
 
   const addForm = document.createElement("form");
   addForm.className = "add-form";
@@ -457,7 +456,8 @@ function renderTrip(data, tripId, token) {
   const addFeedback = document.createElement("div");
   addFeedback.setAttribute("aria-live", "polite");
   addForm.append(addLabel,addInput,addButton,addFeedback);
-  addForm.addEventListener("submit", async (event) => {
+  addButton.type = "button";
+  addButton.addEventListener("click", async (event) => {
     event.preventDefault();
     const participantName = addInput.value.trim();
     if (!participantName) return;
@@ -465,11 +465,19 @@ function renderTrip(data, tripId, token) {
     addButton.textContent = "Adding…";
     addFeedback.replaceChildren();
     try {
-      const response = await fetch(API_URL, {
-        method:"POST",
-        headers:{"Content-Type":"application/json","apikey":API_KEY},
-        body:JSON.stringify({action:"addParticipant",trip_id:tripId,token,participant_name:participantName})
-      });
+      const controller = new AbortController();
+      const requestTimeout = setTimeout(() => controller.abort(),20000);
+      let response;
+      try {
+        response = await fetch(API_URL, {
+          method:"POST",
+          headers:{"Content-Type":"application/json","apikey":API_KEY},
+          body:JSON.stringify({action:"addParticipant",trip_id:tripId,token,participant_name:participantName}),
+          signal:controller.signal
+        });
+      } finally {
+        clearTimeout(requestTimeout);
+      }
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error || "We couldn't add this participant.");
       const message = document.createElement("div");
@@ -502,7 +510,9 @@ function renderTrip(data, tripId, token) {
     } catch (error) {
       const errorText = document.createElement("div");
       errorText.className = "form-error";
-      errorText.textContent = error.message || "Please try again.";
+      errorText.textContent = error.name === "AbortError"
+        ? "The request took too long. Please check your connection and try again."
+        : (error.message || "Please try again.");
       addFeedback.append(errorText);
     } finally {
       addButton.disabled = false;
