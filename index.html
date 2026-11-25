@@ -44,9 +44,13 @@
     .success-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
 
 .saved-section{margin:0 0 34px}.saved-section h2{font-size:22px;margin:0 0 6px}.saved-section>.sub{margin-bottom:18px}.saved-search{max-width:420px;margin:0 0 18px}.saved-search input{height:43px}.saved-empty{font-size:13px;color:var(--muted);padding:14px 0}.trip-groups{display:grid;gap:18px}.trip-group h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 9px}.saved-trip{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:8px}.saved-trip-info{min-width:0}.saved-trip-name{font-weight:750;overflow-wrap:anywhere}.saved-trip-meta{font-size:12px;color:var(--muted);margin-top:4px}.saved-trip-actions{display:flex;gap:7px;flex-shrink:0}.saved-trip-actions button{border:1px solid #c9d8d2;border-radius:8px;background:#fff;color:var(--accent-dark);font-weight:650;padding:8px 10px}.saved-trip-actions .remove-trip{color:var(--danger);border-color:#ead1d1}@media(max-width:520px){.saved-trip{align-items:flex-start;flex-direction:column}.saved-trip-actions{width:100%}.saved-trip-actions button{flex:1}}
-    .join-panel{margin-top:28px;padding:22px;background:#fff;border:1px solid var(--line);border-radius:14px;max-width:560px}.join-panel h3{font-size:17px;margin:0 0 6px}.join-panel .sub{margin:0 0 14px}.join-panel .primary{margin-top:14px}.join-panel label{margin-top:10px}
+    .intro-hero{margin:0 0 44px}.intro-hero h1{max-width:720px}.intro-hero .intro{max-width:680px}
+    .saved-section{margin:0 0 28px}.actions-section{margin-top:24px}.action-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.action-toggle{min-height:54px;padding:12px 16px;border:1px solid #c9d8d2;border-radius:11px;background:#fff;color:var(--accent-dark);font-weight:700;text-align:center}.action-toggle:hover,.action-toggle[aria-expanded="true"]{background:var(--soft);border-color:var(--accent)}.action-panel{margin-top:16px;max-width:620px}.action-panel[hidden]{display:none}.join-panel{padding:22px;background:#fff;border:1px solid var(--line);border-radius:14px;max-width:620px}.join-panel h3{font-size:17px;margin:0 0 6px}.join-panel .sub{margin:0 0 14px}.join-panel .primary{margin-top:14px}.join-panel label{margin-top:10px}
+    .two>div{min-width:0}.two input[type="date"]{display:block;width:100%;max-width:100%;min-width:0;padding:0 8px;font-size:14px}
+    @media(max-width:620px){.action-buttons{grid-template-columns:1fr}.action-toggle{text-align:left}.intro-hero{margin-bottom:34px}}
+    @media(max-width:420px){.two{grid-template-columns:minmax(0,1fr);gap:0}.two>div{width:100%;min-width:0}.two input[type="date"]{font-size:14px;padding:0 9px}}
     footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
-    @media(max-width:800px){.shell{padding:18px 16px 40px}header{margin:4px 0 40px}.hero{grid-template-columns:1fr;gap:34px}.intro{font-size:16px}.panel{padding:24px}.points{gap:12px 18px}footer{margin-top:42px}}
+    @media(max-width:800px){.shell{padding:18px 16px 40px}header{margin:4px 0 32px}.intro{font-size:16px}.panel{padding:24px}.points{gap:12px 18px}footer{margin-top:42px}}
     @media(max-width:420px){.two{grid-template-columns:1fr;gap:0}.panel{padding:21px}h1{letter-spacing:-1.5px}}
     .offline-banner{margin:0 0 18px;padding:12px 15px;border:1px solid #e8c98a;border-radius:12px;background:#fff7e8;color:#76521b;font-size:14px;line-height:1.5}
     .offline-banner[hidden]{display:none}
@@ -59,44 +63,14 @@
       <div class="brand">Trip<span>Split</span></div>
     </header>
     <div id="offline-banner" class="offline-banner" role="status" aria-live="polite" hidden>You’re offline. Connect to Wi-Fi or mobile data to load or update your trips.</div>
-    <section id="saved-section" class="saved-section" aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div><div class="join-panel"><h3>Join an existing trip</h3><p class="sub">Paste your private trip link to add it to My Trips on this device.</p><form id="join-form"><label for="join-link">Private trip link</label><input id="join-link" type="url" inputmode="url" autocomplete="url" placeholder="https://…/trip.html#trip=…&token=…" required><button class="primary" id="join-submit" type="submit">Add trip</button></form><div id="join-status" class="status" role="status" aria-live="polite"></div></div><div class="join-panel" style="margin-top:16px"><h3>Restore a JSON backup</h3><p class="sub">Import a TripSplit backup as a new trip. This will not replace or change any existing trip.</p><form id="restore-form"><label for="restore-file">TripSplit backup file (.json)</label><input id="restore-file" type="file" accept=".json,application/json" required><div id="restore-turnstile" style="margin:16px 0"></div><button class="primary" id="restore-submit" type="submit">Restore backup</button></form><div id="restore-status" class="status" role="status" aria-live="polite"></div></div></section>
-    <main class="hero">
-      <section>
-        <p class="eyebrow">Travel together. Settle up simply.</p>
-        <h1>Good trips are better when expenses are clear.</h1>
-        <p class="intro">Keep everyone's trip spending in one place. Record who paid, share costs fairly, and see who owes what — without asking everyone to create an account.</p>
-        <div class="points"><span>Simple shared expenses</span><span>Clear balances</span><span>No sign-up for friends</span></div>
-      </section>
-      <section class="panel" aria-labelledby="form-title">
-        <h2 id="form-title">Start a new trip</h2>
-        <p class="sub">Create your trip, then invite everyone with their own private access link.</p>
-        <form id="create-form">
-          <label for="trip-name">Trip name</label>
-          <input id="trip-name" name="trip_name" maxlength="80" placeholder="e.g. Summer in Portugal" required>
-          <label for="organiser-name">Your name</label>
-          <input id="organiser-name" name="organiser_name" maxlength="60" placeholder="How should we identify you?" required>
-          <label for="currency">Trip currency</label>
-          <select id="currency" name="currency">
-            <option value="EUR" selected>EUR — Euro (€)</option>
-            <option value="USD">USD — US Dollar ($)</option>
-            <option value="GBP">GBP — British Pound (£)</option>
-            <option value="AUD">AUD — Australian Dollar ($)</option>
-            <option value="NZD">NZD — New Zealand Dollar ($)</option>
-            <option value="CAD">CAD — Canadian Dollar ($)</option>
-            <option value="CHF">CHF — Swiss Franc</option>
-            <option value="JPY">JPY — Japanese Yen (¥)</option>
-          </select>
-          <div class="two">
-            <div><label for="start-date">Start date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="start-date" name="start_date" type="date"></div>
-            <div><label for="end-date">End date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="end-date" name="end_date" type="date"></div>
-          </div>
-          <div id="create-turnstile" style="margin:16px 0"></div>
-          <button class="primary" id="submit" type="submit">Create trip <span aria-hidden="true">→</span></button>
-        </form>
-        <div id="status" class="status" role="status" aria-live="polite"></div>
-        <p class="note">Your trip is private. Only people with an access link can open it.</p>
-      </section>
-    </main>
+    <main class="intro-hero" aria-label="TripSplit introduction"><section><p class="eyebrow">Travel together. Settle up simply.</p><h1>Good trips are better when expenses are clear.</h1><p class="intro">Keep everyone's trip spending in one place. Record who paid, share costs fairly, and see who owes what — without asking everyone to create an account.</p><div class="points"><span>Simple shared expenses</span><span>Clear balances</span><span>No sign-up for friends</span></div></section></main>
+    <section id="saved-section" class="saved-section" aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div></section>
+    <section class="actions-section" aria-label="Trip actions"><div class="action-buttons"><button class="action-toggle" type="button" aria-expanded="false" aria-controls="create-panel" data-panel="create-panel">+ Start a new trip</button><button class="action-toggle" type="button" aria-expanded="false" aria-controls="join-panel" data-panel="join-panel">Join an existing trip</button><button class="action-toggle" type="button" aria-expanded="false" aria-controls="restore-panel" data-panel="restore-panel">Restore a JSON backup</button></div>
+      <section id="create-panel" class="panel action-panel" aria-labelledby="form-title" hidden><h2 id="form-title">Start a new trip</h2><p class="sub">Create your trip, then invite everyone with their own private access link.</p><form id="create-form"><label for="trip-name">Trip name</label><input id="trip-name" name="trip_name" maxlength="80" placeholder="e.g. Summer in Portugal" required><label for="organiser-name">Your name</label><input id="organiser-name" name="organiser_name" maxlength="60" placeholder="How should we identify you?" required><label for="currency">Trip currency</label><select id="currency" name="currency"><option value="EUR" selected>EUR — Euro (€)</option><option value="USD">USD — US Dollar ($)</option><option value="GBP">GBP — British Pound (£)</option><option value="AUD">AUD — Australian Dollar ($)</option><option value="NZD">NZD — New Zealand Dollar ($)</option><option value="CAD">CAD — Canadian Dollar ($)</option><option value="CHF">CHF — Swiss Franc</option><option value="JPY">JPY — Japanese Yen (¥)</option></select><div class="two"><div><label for="start-date">Start date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="start-date" name="start_date" type="date"></div><div><label for="end-date">End date <span style="font-weight:400;color:#87919b">(optional)</span></label><input id="end-date" name="end_date" type="date"></div></div><div id="create-turnstile" style="margin:16px 0"></div><button class="primary" id="submit" type="submit">Create trip <span aria-hidden="true">→</span></button></form><div id="status" class="status" role="status" aria-live="polite"></div><p class="note">Your trip is private. Only people with an access link can open it.</p></section>
+      <section id="join-panel" class="join-panel action-panel" hidden><h3>Join an existing trip</h3><p class="sub">Paste your private trip link to add it to My Trips on this device.</p><form id="join-form"><label for="join-link">Private trip link</label><input id="join-link" type="url" inputmode="url" autocomplete="url" placeholder="https://…/trip.html#trip=…&token=…" required><button class="primary" id="join-submit" type="submit">Add trip</button></form><div id="join-status" class="status" role="status" aria-live="polite"></div></section>
+      <section id="restore-panel" class="join-panel action-panel" hidden><h3>Restore a JSON backup</h3><p class="sub">Import a TripSplit backup as a new trip. This will not replace or change any existing trip.</p><form id="restore-form"><label for="restore-file">TripSplit backup file (.json)</label><input id="restore-file" type="file" accept=".json,application/json" required><div id="restore-turnstile" style="margin:16px 0"></div><button class="primary" id="restore-submit" type="submit">Restore backup</button></form><div id="restore-status" class="status" role="status" aria-live="polite"></div></section>
+    </section>
+
     <footer>TripSplit · Shared trip expenses, made simple.</footer>
   </div>
 <script>
@@ -155,6 +129,13 @@ function renderSavedTrips(){
  const remove=document.createElement("button");remove.type="button";remove.className="remove-trip";remove.textContent="Remove";remove.addEventListener("click",()=>{if(!confirm("Remove this trip from this device? This does not delete the trip or revoke access."))return;localStorage.setItem(TRIPS_KEY,JSON.stringify(readSavedTrips().filter(y=>y.trip_id!==x.trip_id)));renderSavedTrips()});actions.append(open,remove);row.append(info,actions);section.append(row)});list.append(section)});
 }
 document.getElementById("saved-trip-search").addEventListener("input",renderSavedTrips);
+document.querySelectorAll(".action-toggle").forEach(button=>{
+ button.addEventListener("click",()=>{
+  const panel=document.getElementById(button.dataset.panel),opening=panel.hidden;
+  panel.hidden=!opening;
+  button.setAttribute("aria-expanded",String(opening));
+ });
+});
 document.getElementById("join-form").addEventListener("submit",async event=>{
  event.preventDefault();
  const input=document.getElementById("join-link"),button=document.getElementById("join-submit"),box=document.getElementById("join-status");
