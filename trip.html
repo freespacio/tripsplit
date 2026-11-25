@@ -85,6 +85,9 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .settlement-record strong{white-space:nowrap}
 .export-button{display:inline-flex;align-items:center;justify-content:center;margin:12px 0;padding:9px 12px;border:1px solid #c9d8d2;border-radius:9px;background:#fff;color:var(--accent-dark);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .export-button:hover{background:var(--soft)}
+.export-options{display:grid;gap:10px;margin-top:16px}
+.export-options .export-button{width:100%;min-height:46px;margin:0;justify-content:flex-start;padding:12px 14px}
+.export-options .export-choice{font-size:13px}
 .participants-dialog{width:min(680px,calc(100% - 32px));max-height:min(82dvh,760px);padding:0;border:1px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(15,30,40,.24);overflow:auto}
 .participants-dialog::backdrop{background:rgba(15,25,32,.48);backdrop-filter:blur(3px)}
 .participants-dialog .card{border:0;border-radius:0;box-shadow:none;padding:24px}
@@ -692,10 +695,10 @@ function renderTrip(data, tripId, token) {
     });
   };
   renderExpenses(data.expenses || []);
-  expenseCard.append(expenseTitle,expenseHint,exportExpenses,expenseList);
+  expenseCard.append(expenseTitle,expenseHint,expenseList);
 
   if (trip.status === "active") {
-    expenseCard.insertBefore(newExpenseButton,exportExpenses);
+    expenseCard.insertBefore(newExpenseButton,expenseList);
     const expenseForm = document.createElement("form"); expenseForm.className = "expense-form";
     const descriptionLabel = document.createElement("label"); descriptionLabel.textContent = "What was it for?";
     const descriptionInput = document.createElement("input"); descriptionInput.name = "description"; descriptionInput.maxLength = 120; descriptionInput.placeholder = "e.g. Dinner, fuel, museum tickets"; descriptionInput.required = true;
@@ -1202,13 +1205,51 @@ function renderTrip(data, tripId, token) {
     };
     downloadJson(safeFilename(trip.name) + "-backup.json", backup);
   });
-  hero.append(backupButton);
   const printButton = document.createElement("button");
   printButton.type = "button";
   printButton.className = "export-button";
   printButton.textContent = "Download PDF report";
-  printButton.addEventListener("click", () => window.print());
-  hero.append(printButton);
+  printButton.addEventListener("click", () => {
+    exportDialog.close();
+    window.print();
+  });
+
+  const exportButton = document.createElement("button");
+  exportButton.type = "button";
+  exportButton.className = "export-button";
+  exportButton.textContent = "Export";
+  const exportDialog = document.createElement("dialog");
+  exportDialog.className = "participants-dialog export-dialog";
+  exportDialog.setAttribute("aria-label","Export trip data");
+  const exportPanel = document.createElement("section");
+  exportPanel.className = "card";
+  const exportHeader = document.createElement("div");
+  exportHeader.className = "participants-dialog-header";
+  const exportTitle = document.createElement("h2");
+  exportTitle.textContent = "Export trip data";
+  const closeExport = document.createElement("button");
+  closeExport.type = "button";
+  closeExport.className = "dialog-close";
+  closeExport.setAttribute("aria-label","Close export options");
+  closeExport.textContent = "×";
+  closeExport.addEventListener("click",() => exportDialog.close());
+  exportHeader.append(exportTitle,closeExport);
+  const exportHint = document.createElement("p");
+  exportHint.className = "hint";
+  exportHint.textContent = "Choose the format you want to download.";
+  const exportOptions = document.createElement("div");
+  exportOptions.className = "export-options";
+  exportExpenses.textContent = "Expenses CSV";
+  backupButton.textContent = "JSON backup";
+  printButton.textContent = "PDF report";
+  [printButton,exportExpenses,backupButton].forEach(button => {
+    button.classList.add("export-choice");
+    exportOptions.append(button);
+  });
+  exportPanel.append(exportHeader,exportHint,exportOptions);
+  exportDialog.append(exportPanel);
+  exportButton.addEventListener("click",() => exportDialog.showModal());
+  hero.append(exportButton,exportDialog);
   const participantsButton = document.createElement("button");
   participantsButton.type = "button";
   participantsButton.className = "participants-button";
