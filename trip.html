@@ -87,7 +87,8 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .export-button:hover{background:var(--soft)}
 .export-options{display:grid;gap:10px;margin-top:16px}
 .export-options .export-button{width:100%;min-height:46px;margin:0;justify-content:flex-start;padding:12px 14px}
-.export-options .export-choice{font-size:13px}
+.export-options .export-choice{font-size:13px;background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.export-options .export-choice:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
 .participants-dialog{width:min(680px,calc(100% - 32px));max-height:min(82dvh,760px);padding:0;border:1px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(15,30,40,.24);overflow:auto}
 .participants-dialog::backdrop{background:rgba(15,25,32,.48);backdrop-filter:blur(3px)}
 .participants-dialog .card{border:0;border-radius:0;box-shadow:none;padding:24px}
@@ -1043,7 +1044,7 @@ function renderTrip(data, tripId, token) {
   const exportSettlements = document.createElement("button");
   exportSettlements.type = "button";
   exportSettlements.className = "export-button";
-  exportSettlements.textContent = "Export repayments CSV";
+  exportSettlements.textContent = "Repayments CSV";
   exportSettlements.addEventListener("click", () => {
     const rows = [["Date","Paid by","Received by","Amount","Currency","Notes"]];
     (data.settlements || []).filter(item => item.status === "paid").forEach(item => {
@@ -1058,7 +1059,7 @@ function renderTrip(data, tripId, token) {
     });
     downloadCsv(safeFilename(trip.name) + "-repayments.csv", rows);
   });
-  history.append(historyTitle,exportSettlements);
+  history.append(historyTitle);
   const recordedSettlements = (data.settlements || []).filter(item => item.status === "paid");
   if (!recordedSettlements.length) {
     const emptyHistory = document.createElement("p"); emptyHistory.className = "hint"; emptyHistory.textContent = "No repayments recorded yet.";
@@ -1242,7 +1243,7 @@ function renderTrip(data, tripId, token) {
   exportExpenses.textContent = "Expenses CSV";
   backupButton.textContent = "JSON backup";
   printButton.textContent = "PDF report";
-  [printButton,exportExpenses,backupButton].forEach(button => {
+  [printButton,exportExpenses,exportSettlements,backupButton].forEach(button => {
     button.classList.add("export-choice");
     exportOptions.append(button);
   });
