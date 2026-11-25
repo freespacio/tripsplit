@@ -643,8 +643,18 @@ function renderTrip(data, tripId, token) {
   const expenseSortRow = document.createElement("div"); expenseSortRow.className = "expense-sort-row";
   const expenseSortLabel = document.createElement("label"); expenseSortLabel.htmlFor = "expense-sort"; expenseSortLabel.textContent = "Sort by";
   const expenseSortSelect = document.createElement("select"); expenseSortSelect.id = "expense-sort"; expenseSortSelect.className = "expense-sort-select";
-  [["expense-date","Expense date (newest first)"],["date-entered","Date entered (newest first)"],["category","Expense type (A–Z)"],["payer","Payer (A–Z)"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; expenseSortSelect.append(option); });
-  expenseSortRow.append(expenseSortLabel,expenseSortSelect);
+  [["expense-date","Expense date"],["date-entered","Date entered"],["category","Expense type"],["payer","Payer"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; expenseSortSelect.append(option); });
+  const expenseOrderLabel = document.createElement("label"); expenseOrderLabel.htmlFor = "expense-order"; expenseOrderLabel.textContent = "Order";
+  const expenseOrderSelect = document.createElement("select"); expenseOrderSelect.id = "expense-order"; expenseOrderSelect.className = "expense-sort-select";
+  const updateExpenseOrderOptions = (reset = false) => {
+    const alphabetical = expenseSortSelect.value === "category" || expenseSortSelect.value === "payer";
+    const currentOrder = expenseOrderSelect.value;
+    expenseOrderSelect.replaceChildren();
+    [[alphabetical ? "asc" : "desc",alphabetical ? "A–Z" : "Newest first"],[alphabetical ? "desc" : "asc",alphabetical ? "Z–A" : "Oldest first"]].forEach(([value,label]) => { const option = document.createElement("option"); option.value = value; option.textContent = label; expenseOrderSelect.append(option); });
+    expenseOrderSelect.value = !reset && (currentOrder === "asc" || currentOrder === "desc") ? currentOrder : (alphabetical ? "asc" : "desc");
+  };
+  updateExpenseOrderOptions(true);
+  expenseSortRow.append(expenseSortLabel,expenseSortSelect,expenseOrderLabel,expenseOrderSelect);
   const exportExpenses = document.createElement("button");
   exportExpenses.type = "button";
   exportExpenses.className = "export-button";
@@ -681,18 +691,19 @@ function renderTrip(data, tripId, token) {
     expenseList.replaceChildren();
     const sortedItems = (items || []).slice();
     const sortMode = expenseSortSelect.value;
+    const direction = expenseOrderSelect.value === "asc" ? 1 : -1;
     if (sortMode === "date-entered") {
       sortedItems.sort((a,b) => {
         const aTime = Date.parse(a.created_at || "") || 0;
         const bTime = Date.parse(b.created_at || "") || 0;
-        return bTime - aTime || compareExpenseDate(a,b);
+        return direction * (aTime - bTime) || compareExpenseDate(a,b);
       });
     } else if (sortMode === "category") {
-      sortedItems.sort((a,b) => String(a.category || "Other").localeCompare(String(b.category || "Other"),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
+      sortedItems.sort((a,b) => direction * String(a.category || "Other").localeCompare(String(b.category || "Other"),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
     } else if (sortMode === "payer") {
-      sortedItems.sort((a,b) => String(a.payer_name || "").localeCompare(String(b.payer_name || ""),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
+      sortedItems.sort((a,b) => direction * String(a.payer_name || "").localeCompare(String(b.payer_name || ""),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
     } else {
-      sortedItems.sort(compareExpenseDate);
+      sortedItems.sort((a,b) => direction * compareExpenseDate(a,b));
     }
     if (!sortedItems.length) {
       const empty = document.createElement("div");
@@ -727,7 +738,8 @@ function renderTrip(data, tripId, token) {
       expenseList.append(row);
     });
   };
-  expenseSortSelect.addEventListener("change",() => renderExpenses(data.expenses || []));
+  expenseSortSelect.addEventListener("change",() => { updateExpenseOrderOptions(true); renderExpenses(data.expenses || []); });
+  expenseOrderSelect.addEventListener("change",() => renderExpenses(data.expenses || []));
   renderExpenses(data.expenses || []);
   expenseCard.append(expenseTitle,expenseHint,expenseSortRow,expenseList);
 
