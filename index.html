@@ -225,5 +225,16 @@ form.addEventListener("submit", async (event) => {
   }
 });
 </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(error => {
+      console.warn("TripSplit offline support could not be started.", error);
+    });
+  });
+}
+</script>
+
 </body>
 </html>
