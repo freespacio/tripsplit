@@ -703,7 +703,7 @@ function renderTrip(data, tripId, token) {
     } else if (sortMode === "payer") {
       sortedItems.sort((a,b) => direction * String(a.payer_name || "").localeCompare(String(b.payer_name || ""),undefined,{sensitivity:"base"}) || compareExpenseDate(a,b));
     } else {
-      sortedItems.sort((a,b) => direction * compareExpenseDate(a,b));
+      sortedItems.sort((a,b) => (direction === 1 ? -1 : 1) * compareExpenseDate(a,b));
     }
     if (!sortedItems.length) {
       const empty = document.createElement("div");
