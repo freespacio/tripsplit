@@ -44,7 +44,7 @@
     .success-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
 
 .saved-section{margin:0 0 34px}.saved-section h2{font-size:22px;margin:0 0 6px}.saved-section>.sub{margin-bottom:18px}.saved-search{max-width:420px;margin:0 0 18px}.saved-search input{height:43px}.saved-empty{font-size:13px;color:var(--muted);padding:14px 0}.trip-groups{display:grid;gap:18px}.trip-group h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 9px}.saved-trip{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:8px}.saved-trip-info{min-width:0}.saved-trip-name{font-weight:750;overflow-wrap:anywhere}.saved-trip-meta{font-size:12px;color:var(--muted);margin-top:4px}.saved-trip-actions{display:flex;gap:7px;flex-shrink:0}.saved-trip-actions button{border:1px solid #c9d8d2;border-radius:8px;background:#fff;color:var(--accent-dark);font-weight:650;padding:8px 10px}.saved-trip-actions .remove-trip{color:var(--danger);border-color:#ead1d1}@media(max-width:520px){.saved-trip{align-items:flex-start;flex-direction:column}.saved-trip-actions{width:100%}.saved-trip-actions button{flex:1}}
-    footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
+    .join-panel{margin-top:28px;padding:22px;background:#fff;border:1px solid var(--line);border-radius:14px;max-width:560px}.join-panel h3{font-size:17px;margin:0 0 6px}.join-panel .sub{margin:0 0 14px}.join-panel .primary{margin-top:14px}.join-panel label{margin-top:10px}\n    footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
     @media(max-width:800px){.shell{padding:18px 16px 40px}header{margin:4px 0 40px}.hero{grid-template-columns:1fr;gap:34px}.intro{font-size:16px}.panel{padding:24px}.points{gap:12px 18px}footer{margin-top:42px}}
     @media(max-width:420px){.two{grid-template-columns:1fr;gap:0}.panel{padding:21px}h1{letter-spacing:-1.5px}}
   </style>
@@ -55,7 +55,7 @@
       <div class="mark" aria-hidden="true">T</div>
       <div class="brand">Trip<span>Split</span></div>
     </header>
-    <section id="saved-section" class="saved-section" hidden aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div></section>
+    <section id="saved-section" class="saved-section" aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div><div class="join-panel"><h3>Join an existing trip</h3><p class="sub">Paste your private trip link to add it to My Trips on this device.</p><form id="join-form"><label for="join-link">Private trip link</label><input id="join-link" type="url" inputmode="url" autocomplete="url" placeholder="https://…/trip.html#trip=…&token=…" required><button class="primary" id="join-submit" type="submit">Add trip</button></form><div id="join-status" class="status" role="status" aria-live="polite"></div></div></section>
     <main class="hero">
       <section>
         <p class="eyebrow">Travel together. Settle up simply.</p>
@@ -105,19 +105,44 @@ const TRIPS_KEY="tripsplit_saved_trips_v1";
 function readSavedTrips(){try{return JSON.parse(localStorage.getItem(TRIPS_KEY)||"[]").filter(x=>x&&x.trip_id&&x.token)}catch{return []}}
 function saveTrip(record){const items=readSavedTrips().filter(x=>x.trip_id!==record.trip_id);items.unshift({...record,saved_at:new Date().toISOString()});try{localStorage.setItem(TRIPS_KEY,JSON.stringify(items.slice(0,100)))}catch{}}
 function renderSavedTrips(){
- const allItems=readSavedTrips(),section=document.getElementById("saved-section"),list=document.getElementById("saved-trips"),search=document.getElementById("saved-trip-search"),query=(search?.value||"").trim().toLowerCase();if(!allItems.length)return;section.hidden=false;
+ const allItems=readSavedTrips(),section=document.getElementById("saved-section"),list=document.getElementById("saved-trips"),search=document.getElementById("saved-trip-search"),query=(search?.value||"").trim().toLowerCase();section.hidden=false;
  const items=allItems.filter(x=>[x.name,x.participant_name,x.currency,x.role,...(Array.isArray(x.participant_names)?x.participant_names:[])].filter(Boolean).join(" ").toLowerCase().includes(query));
  const today=new Date();today.setHours(0,0,0,0);const groups=[{name:"Current",items:[]},{name:"Upcoming",items:[]},{name:"Past",items:[]}];
  items.forEach(x=>{const start=x.start_date?new Date(x.start_date+"T00:00:00"):null,end=x.end_date?new Date(x.end_date+"T00:00:00"):null;const n=(x.status==="closed"||x.status==="archived"||(end&&end<today))?2:((start&&start>today)?1:0);groups[n].items.push(x)});
  groups[1].items.sort((a,b)=>(a.start_date||"9999-12-31").localeCompare(b.start_date||"9999-12-31"));
  groups[0].items.sort((a,b)=>(b.start_date||"0000-01-01").localeCompare(a.start_date||"0000-01-01"));
  groups[2].items.sort((a,b)=>(b.end_date||b.start_date||"0000-01-01").localeCompare(a.end_date||a.start_date||"0000-01-01"));
- list.replaceChildren();if(!items.length){const empty=document.createElement("p");empty.className="saved-empty";empty.textContent="No saved trips match your search.";list.append(empty);return;}groups.forEach(g=>{if(!g.items.length)return;const section=document.createElement("section");section.className="trip-group";const h=document.createElement("h3");h.textContent=g.name;section.append(h);
+ list.replaceChildren();if(!items.length){const empty=document.createElement("p");empty.className="saved-empty";empty.textContent=allItems.length?"No saved trips match your search.":"No trips saved on this device yet. Paste a private trip link below to add one.";list.append(empty);return;}groups.forEach(g=>{if(!g.items.length)return;const section=document.createElement("section");section.className="trip-group";const h=document.createElement("h3");h.textContent=g.name;section.append(h);
  g.items.forEach(x=>{const row=document.createElement("article");row.className="saved-trip";const info=document.createElement("div");info.className="saved-trip-info";const name=document.createElement("div");name.className="saved-trip-name";name.textContent=x.name||"Untitled trip";const meta=document.createElement("div");meta.className="saved-trip-meta";meta.textContent=[x.currency||"EUR",[x.start_date,x.end_date].filter(Boolean).join(" – "),x.role==="organiser"?"Organiser":"Participant · "+(x.participant_name||"")].filter(Boolean).join(" · ");info.append(name,meta);
  const actions=document.createElement("div");actions.className="saved-trip-actions";const open=document.createElement("button");open.type="button";open.textContent="Open trip";open.addEventListener("click",()=>location.href="trip.html#trip="+encodeURIComponent(x.trip_id)+"&token="+encodeURIComponent(x.token));
  const remove=document.createElement("button");remove.type="button";remove.className="remove-trip";remove.textContent="Remove";remove.addEventListener("click",()=>{if(!confirm("Remove this trip from this device? This does not delete the trip or revoke access."))return;localStorage.setItem(TRIPS_KEY,JSON.stringify(readSavedTrips().filter(y=>y.trip_id!==x.trip_id)));renderSavedTrips()});actions.append(open,remove);row.append(info,actions);section.append(row)});list.append(section)});
 }
-document.getElementById("saved-trip-search").addEventListener("input",renderSavedTrips);
+document.getElementById("saved-trip-search").addEventListener("input",renderSavedTrips);\ndocument.getElementById("join-form").addEventListener("submit",async event=>{
+ event.preventDefault();
+ const input=document.getElementById("join-link"),button=document.getElementById("join-submit"),box=document.getElementById("join-status");
+ box.className="status";box.textContent="";
+ let tripUrl,tripId,token;
+ try{
+  tripUrl=new URL(input.value.trim());
+  if(tripUrl.origin!==location.origin||!tripUrl.pathname.endsWith("/trip.html"))throw new Error("Please paste a TripSplit trip link from this app.");
+  const params=new URLSearchParams(tripUrl.hash.slice(1));
+  tripId=params.get("trip");token=params.get("token");
+  if(!tripId||!token)throw new Error("That link is missing its trip access details. Please copy the complete private trip link.");
+ }catch(error){box.className="status error";box.textContent=error.message||"Please enter a valid private trip link.";return;}
+ button.disabled=true;button.textContent="Checking trip…";
+ try{
+  const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"getTrip",trip_id:tripId,token})});
+  const data=await response.json();
+  if(!response.ok||!data.success||!data.trip)throw new Error(data.error||"We couldn't open that trip. Check that the link is complete and still active.");
+  saveTrip({trip_id:tripId,token,name:data.trip.name||"Trip",currency:data.trip.base_currency||"EUR",start_date:data.trip.start_date||null,end_date:data.trip.end_date||null,status:data.trip.status||"active",role:data.access?.role||"participant",participant_name:data.access?.participant_name||"",participant_names:Array.isArray(data.participants)?data.participants.map(person=>person.name).filter(Boolean):[]});
+  renderSavedTrips();
+  box.className="status success";box.textContent="Trip added to My Trips on this device.";
+  input.value="";
+  const open=document.createElement("button");open.type="button";open.className="secondary";open.style.marginTop="10px";open.textContent="Open trip";open.addEventListener("click",()=>{location.href="trip.html#trip="+encodeURIComponent(tripId)+"&token="+encodeURIComponent(token)});box.append(open);
+ }catch(error){box.className="status error";box.textContent=error.message||"Something went wrong. Please try again.";}
+ finally{button.disabled=false;button.textContent="Add trip";}
+});
+
 renderSavedTrips();
 
 // Refresh saved trip details from the server so date/status changes are reflected
