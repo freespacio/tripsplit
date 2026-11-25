@@ -106,6 +106,9 @@ function renderSavedTrips(){
  const items=allItems.filter(x=>[x.name,x.participant_name,x.currency,x.role,...(Array.isArray(x.participant_names)?x.participant_names:[])].filter(Boolean).join(" ").toLowerCase().includes(query));
  const today=new Date();today.setHours(0,0,0,0);const groups=[{name:"Current",items:[]},{name:"Upcoming",items:[]},{name:"Past",items:[]}];
  items.forEach(x=>{const start=x.start_date?new Date(x.start_date+"T00:00:00"):null,end=x.end_date?new Date(x.end_date+"T00:00:00"):null;const n=(x.status==="closed"||x.status==="archived"||(end&&end<today))?2:((start&&start>today)?1:0);groups[n].items.push(x)});
+ groups[1].items.sort((a,b)=>(a.start_date||"9999-12-31").localeCompare(b.start_date||"9999-12-31"));
+ groups[0].items.sort((a,b)=>(b.start_date||"0000-01-01").localeCompare(a.start_date||"0000-01-01"));
+ groups[2].items.sort((a,b)=>(b.end_date||b.start_date||"0000-01-01").localeCompare(a.end_date||a.start_date||"0000-01-01"));
  list.replaceChildren();if(!items.length){const empty=document.createElement("p");empty.className="saved-empty";empty.textContent="No saved trips match your search.";list.append(empty);return;}groups.forEach(g=>{if(!g.items.length)return;const section=document.createElement("section");section.className="trip-group";const h=document.createElement("h3");h.textContent=g.name;section.append(h);
  g.items.forEach(x=>{const row=document.createElement("article");row.className="saved-trip";const info=document.createElement("div");info.className="saved-trip-info";const name=document.createElement("div");name.className="saved-trip-name";name.textContent=x.name||"Untitled trip";const meta=document.createElement("div");meta.className="saved-trip-meta";meta.textContent=[x.currency||"EUR",[x.start_date,x.end_date].filter(Boolean).join(" – "),x.role==="organiser"?"Organiser":"Participant · "+(x.participant_name||"")].filter(Boolean).join(" · ");info.append(name,meta);
  const actions=document.createElement("div");actions.className="saved-trip-actions";const open=document.createElement("button");open.type="button";open.textContent="Open trip";open.addEventListener("click",()=>location.href="trip.html#trip="+encodeURIComponent(x.trip_id)+"&token="+encodeURIComponent(x.token));
@@ -113,6 +116,41 @@ function renderSavedTrips(){
 }
 document.getElementById("saved-trip-search").addEventListener("input",renderSavedTrips);
 renderSavedTrips();
+
+// Refresh saved trip details from the server so date/status changes are reflected
+// even when the user has not opened that trip since it changed.
+async function refreshSavedTrips(){
+ const records=readSavedTrips();
+ if(!records.length)return;
+ let changed=false;
+ for(let i=0;i<records.length;i+=3){
+  const batch=records.slice(i,i+3);
+  await Promise.all(batch.map(async record=>{
+   try{
+    const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":API_KEY},body:JSON.stringify({action:"getTrip",trip_id:record.trip_id,token:record.token})});
+    const data=await response.json();
+    if(!response.ok||!data.success||!data.trip)return;
+    record.name=data.trip.name||record.name;
+    record.currency=data.trip.base_currency||record.currency;
+    record.start_date=data.trip.start_date||null;
+    record.end_date=data.trip.end_date||null;
+    record.status=data.trip.status||record.status;
+    if(data.access){
+     record.role=data.access.role||record.role;
+     record.participant_name=data.access.participant_name||record.participant_name||"";
+    }
+    if(Array.isArray(data.participants))record.participant_names=data.participants.map(person=>person.name).filter(Boolean);
+    record.saved_at=new Date().toISOString();
+    changed=true;
+   }catch(error){/* Keep the last saved details when the network is unavailable. */}
+  }));
+ }
+ if(changed){
+  try{localStorage.setItem(TRIPS_KEY,JSON.stringify(records))}catch(error){}
+  renderSavedTrips();
+ }
+}
+refreshSavedTrips();
 
 
 function showError(message) {
