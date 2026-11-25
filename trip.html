@@ -451,12 +451,12 @@ function renderTrip(data, tripId, token) {
   addInput.placeholder = "Participant's name";
   addInput.required = true;
   const addButton = document.createElement("button");
-  addButton.type = "submit";
+  addButton.type = "button";
   addButton.textContent = "Add participant";
   const addFeedback = document.createElement("div");
   addFeedback.setAttribute("aria-live", "polite");
   addForm.append(addLabel,addInput,addButton,addFeedback);
-  addButton.type = "button";
+  addForm.addEventListener("submit",event => { event.preventDefault(); addButton.click(); });
   addButton.addEventListener("click", async (event) => {
     event.preventDefault();
     const participantName = addInput.value.trim();
