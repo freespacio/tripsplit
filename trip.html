@@ -70,6 +70,9 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .settlement-history h3{font-size:13px;margin:0 0 2px}
 .settlement-record{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:12px;padding:10px;background:#f7f9fa;border-radius:9px}
 .settlement-record strong{white-space:nowrap}
+.export-button{display:inline-flex;align-items:center;justify-content:center;margin:12px 0;padding:9px 12px;border:1px solid #c9d8d2;border-radius:9px;background:#fff;color:var(--accent-dark);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.export-button:hover{background:var(--soft)}
+
 
 
 
@@ -111,6 +114,25 @@ function showError(message, networkFailure = false) {
   panel.append(title, detail);
   if(offline){const retry=document.createElement("button");retry.type="button";retry.textContent="Try again";retry.style.marginTop="12px";retry.addEventListener("click",()=>location.reload());panel.append(retry);}
   app.replaceChildren(panel);
+}
+function csvCell(value) {
+  const text = value == null ? "" : String(value);
+  return '"' + text.replace(/"/g,'""') + '"';
+}
+function downloadCsv(filename, rows) {
+  const content = "\uFEFF" + rows.map(row => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([content], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function safeFilename(value) {
+  return (value || "TripSplit").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9-_]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,60) || "TripSplit";
 }
 function dateLabel(value) {
   if (!value) return "";
@@ -416,6 +438,26 @@ function renderTrip(data, tripId, token) {
   const expenseCard = document.createElement("section"); expenseCard.className = "card";
   const expenseTitle = document.createElement("h2"); expenseTitle.textContent = "Expenses";
   const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Record shared spending and split it fairly.";
+  const exportExpenses = document.createElement("button");
+  exportExpenses.type = "button";
+  exportExpenses.className = "export-button";
+  exportExpenses.textContent = "Export expenses CSV";
+  exportExpenses.addEventListener("click", () => {
+    const rows = [["Date","Description","Category","Paid by","Amount","Currency","Split details","Notes"]];
+    (data.expenses || []).forEach(item => {
+      rows.push([
+        item.expense_date || "",
+        item.description || "",
+        item.category || "Other",
+        item.payer_name || "",
+        (Number(item.amount_cents || 0) / 100).toFixed(2),
+        trip.base_currency || "EUR",
+        (item.shares || []).map(share => share.participant_name + ": " + (Number(share.share_cents || 0) / 100).toFixed(2)).join("; "),
+        item.notes || ""
+      ]);
+    });
+    downloadCsv(safeFilename(trip.name) + "-expenses.csv", rows);
+  });
   const expenseList = document.createElement("div");
   let startEditingExpense = null;
   let deleteExpenseAction = null;
@@ -451,7 +493,7 @@ function renderTrip(data, tripId, token) {
     });
   };
   renderExpenses(data.expenses || []);
-  expenseCard.append(expenseTitle,expenseHint,expenseList);
+  expenseCard.append(expenseTitle,expenseHint,exportExpenses,expenseList);
 
   if (trip.status === "active") {
     const expenseForm = document.createElement("form"); expenseForm.className = "expense-form";
@@ -769,7 +811,25 @@ function renderTrip(data, tripId, token) {
   }
   const history = document.createElement("div"); history.className = "settlement-history";
   const historyTitle = document.createElement("h3"); historyTitle.textContent = "Recorded repayments";
-  history.append(historyTitle);
+  const exportSettlements = document.createElement("button");
+  exportSettlements.type = "button";
+  exportSettlements.className = "export-button";
+  exportSettlements.textContent = "Export repayments CSV";
+  exportSettlements.addEventListener("click", () => {
+    const rows = [["Date","Paid by","Received by","Amount","Currency","Notes"]];
+    (data.settlements || []).filter(item => item.status === "paid").forEach(item => {
+      rows.push([
+        item.settlement_date || "",
+        item.from_name || "",
+        item.to_name || "",
+        (Number(item.amount_cents || 0) / 100).toFixed(2),
+        trip.base_currency || "EUR",
+        item.notes || ""
+      ]);
+    });
+    downloadCsv(safeFilename(trip.name) + "-repayments.csv", rows);
+  });
+  history.append(historyTitle,exportSettlements);
   const recordedSettlements = (data.settlements || []).filter(item => item.status === "paid");
   if (!recordedSettlements.length) {
     const emptyHistory = document.createElement("p"); emptyHistory.className = "hint"; emptyHistory.textContent = "No repayments recorded yet.";
