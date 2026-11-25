@@ -156,6 +156,51 @@ function renderTrip(data, tripId, token) {
     row.append(avatar,name,role);
     if (data.access?.role === "organiser" && person.role === "organiser" && person.id === data.access.participant_id && trip.status === "active") {
       const ownLinkButton = document.createElement("button");
+      const ownCopyButton = document.createElement("button");
+      ownCopyButton.type = "button";
+      ownCopyButton.className = "participant-link-button";
+      ownCopyButton.textContent = "Copy link";
+      ownCopyButton.addEventListener("click", async () => {
+        ownCopyButton.disabled = true;
+        ownCopyButton.textContent = "Loading…";
+        const previousPanel = row.nextElementSibling;
+        if (previousPanel?.classList.contains("participant-link-result")) previousPanel.remove();
+        try {
+          const response = await fetch(API_URL, {
+            method:"POST", headers:{"Content-Type":"application/json","apikey":API_KEY},
+            body:JSON.stringify({action:"getParticipantLink",trip_id:tripId,token,participant_id:person.id})
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.error || "We couldn't retrieve your organiser link.");
+          const panel = document.createElement("div");
+          panel.className = "participant-link-result";
+          const note = document.createElement("p");
+          note.textContent = "Your existing organiser link. It remains valid and has not been changed.";
+          const copy = document.createElement("button");
+          copy.type = "button";
+          copy.textContent = "Copy link";
+          copy.addEventListener("click", async () => {
+            try { await navigator.clipboard.writeText(result.participant_link); copy.textContent = "Copied"; }
+            catch { note.textContent = "Clipboard unavailable. Open the link below and copy it from the address bar."; }
+          });
+          const open = document.createElement("a");
+          open.href = result.participant_link;
+          open.textContent = "Open organiser link";
+          open.target = "_blank";
+          open.rel = "noopener";
+          panel.append(note,copy,open);
+          row.after(panel);
+        } catch (error) {
+          const panel = document.createElement("div");
+          panel.className = "participant-link-result";
+          panel.textContent = error.message || "Please try again.";
+          row.after(panel);
+        } finally {
+          ownCopyButton.disabled = false;
+          ownCopyButton.textContent = "Copy link";
+        }
+      });
+      row.append(ownCopyButton);
       ownLinkButton.type = "button";
       ownLinkButton.className = "participant-link-button";
       ownLinkButton.textContent = "Reissue my link";
