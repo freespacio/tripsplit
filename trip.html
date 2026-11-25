@@ -154,6 +154,54 @@ function renderTrip(data, tripId, token) {
     const name = document.createElement("span"); name.className = "person-name"; name.textContent = person.name;
     const role = document.createElement("span"); role.className = "role"; role.textContent = person.role;
     row.append(avatar,name,role);
+    if (data.access?.role === "organiser" && person.role === "organiser" && person.id === data.access.participant_id && trip.status === "active") {
+      const ownLinkButton = document.createElement("button");
+      ownLinkButton.type = "button";
+      ownLinkButton.className = "participant-link-button";
+      ownLinkButton.textContent = "Reissue my link";
+      ownLinkButton.addEventListener("click", async () => {
+        if (!confirm("Generate a new organiser link? Your current organiser link will stop working immediately.")) return;
+        ownLinkButton.disabled = true;
+        ownLinkButton.textContent = "Generating…";
+        const previousPanel = row.nextElementSibling;
+        if (previousPanel?.classList.contains("participant-link-result")) previousPanel.remove();
+        try {
+          const response = await fetch(API_URL, {
+            method:"POST", headers:{"Content-Type":"application/json","apikey":API_KEY},
+            body:JSON.stringify({action:"reissueOrganiserLink",trip_id:tripId,token,participant_id:person.id})
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.error || "We couldn't reissue your organiser link.");
+          const panel = document.createElement("div");
+          panel.className = "participant-link-result";
+          const note = document.createElement("p");
+          note.textContent = "Your new organiser link is ready. Your previous link has been revoked.";
+          const copy = document.createElement("button");
+          copy.type = "button";
+          copy.textContent = "Copy link";
+          copy.addEventListener("click", async () => {
+            try { await navigator.clipboard.writeText(result.participant_link); copy.textContent = "Copied"; }
+            catch { note.textContent = "Clipboard unavailable. Open the link below and copy it from the address bar."; }
+          });
+          const open = document.createElement("a");
+          open.href = result.participant_link;
+          open.textContent = "Open organiser link";
+          open.target = "_blank";
+          open.rel = "noopener";
+          panel.append(note,copy,open);
+          row.after(panel);
+        } catch (error) {
+          const panel = document.createElement("div");
+          panel.className = "participant-link-result";
+          panel.textContent = error.message || "Please try again.";
+          row.after(panel);
+        } finally {
+          ownLinkButton.disabled = false;
+          ownLinkButton.textContent = "Reissue my link";
+        }
+      });
+      row.append(ownLinkButton);
+    }
     if (data.access?.role === "organiser" && person.role === "participant" && trip.status === "active") {
       const showLinkPanel = (link, heading, revoked = false) => {
         const previousPanel = row.nextElementSibling;
