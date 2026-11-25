@@ -249,7 +249,8 @@ function renderTrip(data, tripId, token) {
 
   const grid = document.createElement("div"); grid.className = "grid";
   const peopleCard = document.createElement("section"); peopleCard.className = "card";
-  const peopleHint = document.createElement("p"); peopleHint.className = "hint"; peopleHint.textContent = (data.participants || []).length + " people on this trip";
+  const activeParticipants = (data.participants || []).filter(person => person.is_active !== false);
+  const peopleHint = document.createElement("p"); peopleHint.className = "hint"; peopleHint.textContent = activeParticipants.length + " people on this trip";
   const people = document.createElement("div"); people.className = "people";
   const makeParticipantRow = (person) => {
     const row = document.createElement("div"); row.className = "person";
@@ -431,11 +432,37 @@ function renderTrip(data, tripId, token) {
           linkButton.textContent = "Reissue link";
         }
       });
-      row.append(copyButton,linkButton);
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "participant-link-button";
+      removeButton.style.color = "var(--danger)";
+      removeButton.textContent = "Remove";
+      removeButton.addEventListener("click", async () => {
+        if (!confirm("Remove " + person.name + " from this trip? They will immediately lose access and cannot be included in new expenses. Their existing expenses, shares and balance history will be kept.")) return;
+        removeButton.disabled = true;
+        removeButton.textContent = "Removing…";
+        try {
+          const response = await fetch(API_URL, {
+            method:"POST", headers:{"Content-Type":"application/json","apikey":API_KEY},
+            body:JSON.stringify({action:"removeParticipant",trip_id:tripId,token,participant_id:person.id})
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.error || "We couldn't remove this participant.");
+          await refreshTrip();
+        } catch (error) {
+          removeButton.disabled = false;
+          removeButton.textContent = "Remove";
+          const panel = document.createElement("div");
+          panel.className = "participant-link-result";
+          panel.textContent = error.message || "Please try again.";
+          row.after(panel);
+        }
+      });
+      row.append(copyButton,linkButton,removeButton);
     }
     return row;
   };
-  (data.participants || []).forEach(person => people.append(makeParticipantRow(person)));
+  activeParticipants.forEach(person => people.append(makeParticipantRow(person)));
   peopleCard.append(peopleHint,people);
 
   const addForm = document.createElement("form");
@@ -599,10 +626,10 @@ function renderTrip(data, tripId, token) {
     const dateInput = document.createElement("input"); dateInput.name = "expense_date"; dateInput.type = "date"; const today = new Date(); dateInput.value = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0"); dateInput.required = true;
     const payerLabel = document.createElement("label"); payerLabel.textContent = "Who paid?";
     const payerSelect = document.createElement("select"); payerSelect.name = "payer_id"; payerSelect.required = true;
-    (data.participants || []).forEach(person => { const option = document.createElement("option"); option.value = person.id; option.textContent = person.name; if (person.id === access.participant_id) option.selected = true; payerSelect.append(option); });
+    activeParticipants.forEach(person => { const option = document.createElement("option"); option.value = person.id; option.textContent = person.name; if (person.id === access.participant_id) option.selected = true; payerSelect.append(option); });
     const splitLabel = document.createElement("div"); splitLabel.className = "field-label"; splitLabel.textContent = "Split between";
     const splitOptions = document.createElement("div"); splitOptions.className = "split-options";
-    (data.participants || []).forEach(person => {
+    activeParticipants.forEach(person => {
       const label = document.createElement("label"); label.className = "split-option";
       const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.name = "split_participant_ids"; checkbox.value = person.id; checkbox.checked = true;
       const text = document.createElement("span"); text.textContent = person.name;
@@ -618,7 +645,7 @@ function renderTrip(data, tripId, token) {
     let editingExpenseId = null;
     let preservedEditShares = null;
     const selectedSplitPeople = () => Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked'))
-      .map(input => (data.participants || []).find(person => person.id === input.value)).filter(Boolean);
+      .map(input => activeParticipants.find(person => person.id === input.value)).filter(Boolean);
     const equalShares = (total, count) => {
       const base = Math.floor(total / count), remainder = total % count;
       return Array.from({length:count}, (_,index) => base + (index < remainder ? 1 : 0));
@@ -1017,7 +1044,7 @@ function renderTrip(data, tripId, token) {
         id: person.id,
         name: person.name || "",
         role: person.role || (person.is_organiser ? "organiser" : "participant"),
-        status: person.status || "active",
+        status: person.is_active === false ? "removed" : (person.status || "active"),
         is_organiser: Boolean(person.is_organiser)
       })),
       expenses: (data.expenses || []).map(item => ({
@@ -1060,7 +1087,7 @@ function renderTrip(data, tripId, token) {
   const participantsButton = document.createElement("button");
   participantsButton.type = "button";
   participantsButton.className = "participants-button";
-  participantsButton.textContent = "Participants · " + ((data.participants || []).length);
+  participantsButton.textContent = "Participants · " + activeParticipants.length;
   const participantsDialog = document.createElement("dialog");
   participantsDialog.className = "participants-dialog";
   participantsDialog.setAttribute("aria-label","Trip participants");
@@ -1105,7 +1132,7 @@ function renderTrip(data, tripId, token) {
     table.append(thead,tbody);report.append(table);
   };
   addReportTable("Participants",["Name","Role","Status"],(data.participants||[]).map(person=>[
-    person.name||"",person.role||(person.is_organiser?"Organiser":"Participant"),person.status||"Active"
+    person.name||"",person.role||(person.is_organiser?"Organiser":"Participant"),person.is_active===false?"Removed":(person.status||"Active")
   ]));
   addReportTable("Expenses",["Date","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
     item.expense_date||"",item.description||"",item.category||"Other",item.payer_name||"",formatMoney(item.amount_cents),
