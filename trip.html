@@ -186,7 +186,30 @@ body{background:#fff!important;color:#17202b!important;font-size:10pt}
 .print-report .report-meta{font-size:9pt;margin-bottom:6mm}
 .print-report .report-footer{font-size:8pt;color:#687483;margin-top:8mm;border-top:1px solid #dce2e8;padding-top:3mm}
 }
+
+/* Render the existing report off-screen for PDF conversion. */
+.print-report.pdf-export{display:block!important;position:fixed;left:-12000px;top:0;width:794px;padding:40px;background:#fff;color:#17202b;font-size:13px;z-index:-1}
+.print-report.pdf-export h1{font-size:32px;letter-spacing:-.6px;margin:0 0 24px}
+.print-report.pdf-export h2{font-size:18px;margin:34px 0 12px;border-bottom:1px solid #d8dfe6;padding-bottom:8px;break-after:avoid}
+.print-report.pdf-export p{margin:6px 0;color:#485563}
+.print-report.pdf-export table{width:100%;border-collapse:collapse;margin:6px 0 20px;font-size:11px;break-inside:auto}
+.print-report.pdf-export table.expenses-table{table-layout:fixed}
+.print-report.pdf-export table.expenses-table th:nth-child(1),.print-report.pdf-export table.expenses-table td:nth-child(1){width:10%}
+.print-report.pdf-export table.expenses-table th:nth-child(2),.print-report.pdf-export table.expenses-table td:nth-child(2){width:8%;white-space:nowrap}
+.print-report.pdf-export table.expenses-table th:nth-child(3),.print-report.pdf-export table.expenses-table td:nth-child(3){width:18%}
+.print-report.pdf-export table.expenses-table th:nth-child(4),.print-report.pdf-export table.expenses-table td:nth-child(4){width:12%}
+.print-report.pdf-export table.expenses-table th:nth-child(5),.print-report.pdf-export table.expenses-table td:nth-child(5){width:14%}
+.print-report.pdf-export table.expenses-table th:nth-child(6),.print-report.pdf-export table.expenses-table td:nth-child(6){width:12%;white-space:nowrap}
+.print-report.pdf-export table.expenses-table th:nth-child(7),.print-report.pdf-export table.expenses-table td:nth-child(7){width:26%;overflow-wrap:anywhere}
+.print-report.pdf-export th,.print-report.pdf-export td{border:1px solid #dce2e8;padding:7px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.print-report.pdf-export th{background:#f0f3f5}
+.print-report.pdf-export .participant-pill,.print-report.pdf-export .record-type-pill{display:inline-flex;margin:1px 2px 1px 0}
+.print-report.pdf-export tr{break-inside:avoid}
+.print-report.pdf-export .report-meta{font-size:12px;margin-bottom:24px}
+.print-report.pdf-export .report-footer{font-size:10px;color:#687483;margin-top:30px;border-top:1px solid #dce2e8;padding-top:12px}
+
 </style>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.3/dist/html2pdf.bundle.min.js" defer></script>
 </head>
 <body>
 <div class="shell">
@@ -1291,9 +1314,74 @@ function renderTrip(data, tripId, token) {
   printButton.type = "button";
   printButton.className = "export-button";
   printButton.textContent = "Download PDF report";
-  printButton.addEventListener("click", () => {
-    exportDialog.close();
-    window.print();
+  let pendingPdfBlob = null;
+  const pdfReadyDialog = document.createElement("dialog");
+  pdfReadyDialog.className = "participants-dialog";
+  pdfReadyDialog.setAttribute("aria-label","PDF report ready");
+  const pdfReadyPanel = document.createElement("section");
+  pdfReadyPanel.className = "card";
+  const pdfReadyHeader = document.createElement("div");
+  pdfReadyHeader.className = "participants-dialog-header";
+  const pdfReadyTitle = document.createElement("h2");
+  pdfReadyTitle.textContent = "PDF report ready";
+  const closePdfReady = document.createElement("button");
+  closePdfReady.type = "button";
+  closePdfReady.className = "dialog-close";
+  closePdfReady.setAttribute("aria-label","Close PDF options");
+  closePdfReady.textContent = "×";
+  closePdfReady.addEventListener("click",() => pdfReadyDialog.close());
+  pdfReadyHeader.append(pdfReadyTitle,closePdfReady);
+  const pdfReadyHint = document.createElement("p");
+  pdfReadyHint.className = "hint";
+  pdfReadyHint.textContent = "Your report has been created. Choose Share or Save to Files to keep a copy.";
+  const sharePdfButton = document.createElement("button");
+  sharePdfButton.type = "button";
+  sharePdfButton.className = "export-button";
+  sharePdfButton.textContent = "Share or save PDF";
+  sharePdfButton.style.width = "100%";
+  sharePdfButton.style.marginTop = "16px";
+  sharePdfButton.addEventListener("click",() => {
+    if (!pendingPdfBlob) return;
+    const filename = safeFilename(trip.name) + "-report.pdf";
+    if (isInstalledApp() && !(navigator.share && navigator.canShare && typeof File !== "undefined" && navigator.canShare({files:[new File([pendingPdfBlob],filename,{type:"application/pdf"})]}))) {
+      window.alert("This iPhone app couldn't open the share sheet. Please open this trip in Safari to save the PDF.");
+      return;
+    }
+    deliverExportFile(filename,pendingPdfBlob);
+    pdfReadyDialog.close();
+  });
+  pdfReadyPanel.append(pdfReadyHeader,pdfReadyHint,sharePdfButton);
+  pdfReadyDialog.append(pdfReadyPanel);
+  printButton.addEventListener("click", async () => {
+    if (typeof html2pdf !== "function") {
+      window.alert("The PDF generator couldn't be loaded. Please check your connection and try again.");
+      return;
+    }
+    printButton.disabled = true;
+    const originalLabel = printButton.textContent;
+    printButton.textContent = "Preparing PDF…";
+    report.classList.add("pdf-export");
+    try {
+      const filename = safeFilename(trip.name) + "-report.pdf";
+      pendingPdfBlob = await html2pdf().set({
+        margin:[10,10,10,10],
+        filename,
+        image:{type:"jpeg",quality:0.98},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",windowWidth:900},
+        jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+        pagebreak:{mode:["css","legacy"]}
+      }).from(report).outputPdf("blob");
+      exportDialog.close();
+      if (!pdfReadyDialog.isConnected) app.append(pdfReadyDialog);
+      pdfReadyDialog.showModal();
+    } catch(error) {
+      console.error("TripSplit PDF export failed.",error);
+      window.alert("TripSplit couldn't create the PDF report. Please try again or open this trip in Safari.");
+    } finally {
+      report.classList.remove("pdf-export");
+      printButton.disabled = false;
+      printButton.textContent = originalLabel;
+    }
   });
 
   const exportButton = document.createElement("button");
