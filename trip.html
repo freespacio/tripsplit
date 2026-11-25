@@ -20,7 +20,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:14px;ma
 main{display:grid;gap:18px}.hero{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 12px 35px rgba(25,42,55,.04)}
 .eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:750;margin:0 0 12px}
 h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0 0 10px}.meta{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px}.card h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
+.grid{display:grid;grid-template-columns:1fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px}.card h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
 .people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.participant-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.35;white-space:nowrap;vertical-align:middle}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
 .participant-link-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.participant-link-button{border:1px solid #d8dfe6;border-radius:8px;background:#fff;color:var(--accent-dark);font-size:11px;font-weight:700;padding:7px 9px;min-height:34px;white-space:nowrap;cursor:pointer}.participant-link-button:disabled{opacity:.6}.participant-link-result{display:grid;gap:9px;padding:12px;margin:0 0 8px 43px;background:var(--soft);border-radius:10px;font-size:12px;overflow-wrap:anywhere}.participant-link-result p{margin:0;line-height:1.5}.participant-link-result button{justify-self:start;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;padding:8px 11px}.participant-link-result a{color:var(--accent-dark);font-weight:650}
 .add-form{display:grid;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}.add-form label{font-size:12px;font-weight:700}.add-form input{width:100%;height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:0 11px;font:inherit}.add-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:11px 14px}.add-form button:disabled{opacity:.6}.invite-result{margin-top:12px;padding:12px;border:1px solid #d5e3dd;background:var(--soft);border-radius:10px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.invite-result a{color:var(--accent-dark);font-weight:650}.copy-invite{margin-top:9px;background:white!important;color:var(--accent-dark)!important;border:1px solid #c9d8d2!important}.form-error{color:var(--danger);font-size:12px}.placeholder{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
@@ -72,6 +72,14 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .settlement-record strong{white-space:nowrap}
 .export-button{display:inline-flex;align-items:center;justify-content:center;margin:12px 0;padding:9px 12px;border:1px solid #c9d8d2;border-radius:9px;background:#fff;color:var(--accent-dark);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .export-button:hover{background:var(--soft)}
+.participants-dialog{width:min(680px,calc(100% - 32px));max-height:min(82dvh,760px);padding:0;border:1px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(15,30,40,.24);overflow:auto}
+.participants-dialog::backdrop{background:rgba(15,25,32,.48);backdrop-filter:blur(3px)}
+.participants-dialog .card{border:0;border-radius:0;box-shadow:none;padding:24px}
+.participants-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.participants-dialog-header h2{margin:0;font-size:18px}
+.dialog-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);font-size:21px;line-height:1;cursor:pointer;flex:0 0 auto}
+.participants-button{margin:12px 8px 0 0;padding:9px 13px;border:1px solid #c9d8d2;border-radius:9px;background:var(--soft);color:var(--accent-dark);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+@media(max-width:680px){.participants-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:82dvh;border-radius:20px 20px 0 0;border-bottom:0}.participants-dialog .card{padding:20px 18px calc(24px + env(safe-area-inset-bottom))}}
 
 
 
@@ -1038,6 +1046,28 @@ function renderTrip(data, tripId, token) {
   printButton.textContent = "Download PDF report";
   printButton.addEventListener("click", () => window.print());
   hero.append(printButton);
+  const participantsButton = document.createElement("button");
+  participantsButton.type = "button";
+  participantsButton.className = "participants-button";
+  participantsButton.textContent = "Participants · " + ((data.participants || []).length);
+  const participantsDialog = document.createElement("dialog");
+  participantsDialog.className = "participants-dialog";
+  participantsDialog.setAttribute("aria-label","Trip participants");
+  const participantsDialogHeader = document.createElement("div");
+  participantsDialogHeader.className = "participants-dialog-header";
+  const participantsDialogTitle = document.createElement("h2");
+  participantsDialogTitle.textContent = "Participants";
+  const closeParticipants = document.createElement("button");
+  closeParticipants.type = "button";
+  closeParticipants.className = "dialog-close";
+  closeParticipants.setAttribute("aria-label","Close participants");
+  closeParticipants.textContent = "×";
+  closeParticipants.addEventListener("click",() => participantsDialog.close());
+  participantsDialogHeader.append(participantsDialogTitle,closeParticipants);
+  peopleCard.insertBefore(participantsDialogHeader,peopleCard.firstChild);
+  participantsDialog.append(peopleCard);
+  participantsButton.addEventListener("click",() => participantsDialog.showModal());
+  hero.append(participantsButton);
 
   const report = document.createElement("section");
   report.className = "print-report";
@@ -1081,8 +1111,8 @@ function renderTrip(data, tripId, token) {
   reportFooter.textContent="Generated by TripSplit. Amounts are shown in "+(trip.base_currency||"EUR")+". Recorded repayments adjust balances and are not included as expenses.";
   report.append(reportFooter);
 
-  grid.append(peopleCard,expenseCard,balanceCard);
-  app.replaceChildren(hero,grid,report);
+  grid.append(expenseCard,balanceCard);
+  app.replaceChildren(hero,grid,report,participantsDialog);
 }
 async function openTrip() {
   const params = new URLSearchParams(location.hash.slice(1));
