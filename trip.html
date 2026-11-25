@@ -224,9 +224,10 @@ function csvCell(value) {
   const text = value == null ? "" : String(value);
   return '"' + text.replace(/"/g,'""') + '"';
 }
-function downloadCsv(filename, rows) {
-  const content = "\uFEFF" + rows.map(row => row.map(csvCell).join(",")).join("\r\n");
-  const blob = new Blob([content], {type:"text/csv;charset=utf-8;"});
+function isInstalledApp() {
+  return window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+}
+function downloadBlob(filename, blob) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -236,17 +237,31 @@ function downloadCsv(filename, rows) {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function deliverExportFile(filename, blob) {
+  if (isInstalledApp() && typeof File !== "undefined" && navigator.share && navigator.canShare) {
+    const file = new File([blob], filename, {type:blob.type});
+    if (navigator.canShare({files:[file]})) {
+      // Invoke share immediately in the original button gesture for iOS.
+      navigator.share({files:[file], title:filename}).catch(error => {
+        if (error.name !== "AbortError") {
+          console.error("TripSplit could not share the export file.", error);
+          window.alert("TripSplit couldn't open the iPhone share sheet. Please try again or open this trip in Safari.");
+        }
+      });
+      return;
+    }
+  }
+  downloadBlob(filename, blob);
+}
+function downloadCsv(filename, rows) {
+  const content = "\uFEFF" + rows.map(row => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([content], {type:"text/csv;charset=utf-8;"});
+  deliverExportFile(filename, blob);
+}
 function downloadJson(filename, value) {
   const content = JSON.stringify(value, null, 2);
   const blob = new Blob([content], {type:"application/json;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  deliverExportFile(filename, blob);
 }
 function safeFilename(value) {
   return (value || "TripSplit").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9-_]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,60) || "TripSplit";
