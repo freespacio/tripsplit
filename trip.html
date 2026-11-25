@@ -68,7 +68,7 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .settlement-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f7f9fa;border-radius:10px;padding:12px;font-size:13px}
 .settlement-item strong{white-space:nowrap}
 .balance-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}
-.settlement-form{display:grid;gap:11px;margin-top:17px;padding-top:16px;border-top:1px solid #edf0f3}
+.settlement-form{display:grid;gap:11px;margin:0;padding:18px 20px 20px;overflow:auto;min-height:0}.settlement-dialog-actions{position:sticky;bottom:0;display:flex;gap:9px;padding:12px 0 calc(14px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);z-index:2}.settlement-dialog-actions button{flex:1;min-height:48px}.settlement-form button.settlement-cancel{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .settlement-form label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
 .settlement-form input,.settlement-form select,.settlement-form textarea{width:100%;min-height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:var(--ink)}
 .settlement-form textarea{min-height:64px;resize:vertical}
@@ -90,7 +90,7 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .participants-dialog-header h2{margin:0;font-size:18px}
 .dialog-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);font-size:21px;line-height:1;cursor:pointer;flex:0 0 auto}
 .participants-button{margin:12px 8px 0 0;padding:9px 13px;border:1px solid #c9d8d2;border-radius:9px;background:var(--soft);color:var(--accent-dark);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
-@media(max-width:680px){.participants-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:82dvh;border-radius:20px 20px 0 0;border-bottom:0}.participants-dialog .card{padding:20px 18px calc(24px + env(safe-area-inset-bottom))}.expense-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:92dvh;border-radius:20px 20px 0 0;border-bottom:0}.expense-dialog-header{padding:16px 18px}.expense-form{padding:16px 18px 0;min-width:0}.expense-form label,.expense-form .field-label{font-size:14px}.expense-form input,.expense-form select,.expense-form textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:50px}.expense-form select{height:50px;padding-top:0;padding-bottom:0}.expense-form input[type=date],.expense-form input[type=time]{width:100%;min-width:0;max-width:100%;padding-left:8px;padding-right:8px}.new-expense-button{display:none}.expense-fab{position:fixed;display:grid;place-items:center;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);width:60px;height:60px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:34px;line-height:1;box-shadow:0 8px 24px rgba(20,50,43,.28);z-index:30;cursor:pointer}.shell{padding-bottom:105px}}
+@media(max-width:680px){.participants-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:82dvh;border-radius:20px 20px 0 0;border-bottom:0}.participants-dialog .card{padding:20px 18px calc(24px + env(safe-area-inset-bottom))}.expense-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:92dvh;border-radius:20px 20px 0 0;border-bottom:0}.expense-dialog-header{padding:16px 18px}.expense-form{padding:16px 18px 0;min-width:0}.settlement-form{padding:16px 18px 0;min-width:0}.expense-form label,.expense-form .field-label{font-size:14px}.expense-form input,.expense-form select,.expense-form textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:50px}.expense-form select{height:50px;padding-top:0;padding-bottom:0}.expense-form input[type=date],.expense-form input[type=time]{width:100%;min-width:0;max-width:100%;padding-left:8px;padding-right:8px}.new-expense-button{display:none}.expense-fab{position:fixed;display:grid;place-items:center;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);width:60px;height:60px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:34px;line-height:1;box-shadow:0 8px 24px rgba(20,50,43,.28);z-index:30;cursor:pointer}.shell{padding-bottom:105px}}
 /* Keep participant checkboxes compact on every screen size. */
 .expense-form .split-option input[type="checkbox"]{
   box-sizing:border-box!important;
@@ -1067,8 +1067,15 @@ function renderTrip(data, tripId, token) {
     });
   }
 
+  const repaymentButton = document.createElement("button"); repaymentButton.type = "button"; repaymentButton.className = "new-expense-button"; repaymentButton.textContent = "＋ Record repayment";
+  const settlementDialog = document.createElement("dialog"); settlementDialog.className = "expense-dialog settlement-dialog"; settlementDialog.setAttribute("aria-label","Record a completed repayment");
+  const settlementDialogHeader = document.createElement("div"); settlementDialogHeader.className = "expense-dialog-header";
+  const settlementDialogTitle = document.createElement("h2"); settlementDialogTitle.textContent = "Record a completed repayment";
+  const closeSettlementDialog = document.createElement("button"); closeSettlementDialog.type = "button"; closeSettlementDialog.className = "dialog-close"; closeSettlementDialog.setAttribute("aria-label","Close repayment form"); closeSettlementDialog.textContent = "×";
+  closeSettlementDialog.addEventListener("click",() => settlementDialog.close());
+  settlementDialogHeader.append(settlementDialogTitle,closeSettlementDialog); settlementDialog.append(settlementDialogHeader);
+  repaymentButton.addEventListener("click",() => settlementDialog.showModal());
   const settlementForm = document.createElement("form"); settlementForm.className = "settlement-form";
-  const formTitle = document.createElement("h3"); formTitle.textContent = "Record a completed repayment";
   const fromLabel = document.createElement("label"); fromLabel.textContent = "Who paid?";
   const fromSelect = document.createElement("select"); fromSelect.required = true;
   const toLabel = document.createElement("label"); toLabel.textContent = "Who received it?";
@@ -1092,8 +1099,12 @@ function renderTrip(data, tripId, token) {
   const confirmText = document.createElement("span"); confirmText.textContent = "I confirm this repayment has already been made.";
   confirmLabel.append(confirmInput,confirmText);
   const saveRepayment = document.createElement("button"); saveRepayment.type = "submit"; saveRepayment.textContent = "Record repayment";
+  const cancelRepayment = document.createElement("button"); cancelRepayment.type = "button"; cancelRepayment.className = "settlement-cancel"; cancelRepayment.textContent = "Cancel";
+  cancelRepayment.addEventListener("click",() => settlementDialog.close());
+  const settlementActions = document.createElement("div"); settlementActions.className = "settlement-dialog-actions"; settlementActions.append(cancelRepayment,saveRepayment);
   const repaymentFeedback = document.createElement("div"); repaymentFeedback.className = "settlement-feedback"; repaymentFeedback.setAttribute("aria-live","polite");
-  settlementForm.append(formTitle,fromLabel,fromSelect,toLabel,toSelect,repaymentAmountLabel,repaymentAmount,repaymentDateLabel,repaymentDate,repaymentNotesLabel,repaymentNotes,confirmLabel,saveRepayment,repaymentFeedback);
+  settlementForm.append(fromLabel,fromSelect,toLabel,toSelect,repaymentAmountLabel,repaymentAmount,repaymentDateLabel,repaymentDate,repaymentNotesLabel,repaymentNotes,confirmLabel,repaymentFeedback,settlementActions);
+  settlementDialog.append(settlementForm);
   settlementForm.addEventListener("submit", async event => {
     event.preventDefault();
     repaymentFeedback.textContent = "";
@@ -1128,7 +1139,7 @@ function renderTrip(data, tripId, token) {
 
   const note = document.createElement("p"); note.className = "balance-note";
   note.textContent = "Only repayments you confirm as already made are recorded. Recorded repayments adjust balances but never change the original expenses.";
-  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,history,settlementForm,note);
+  balanceCard.append(balanceTitle,balanceHint,balancePeople,settlementList,history,repaymentButton,settlementDialog,note);
   const backupButton = document.createElement("button");
   backupButton.type = "button";
   backupButton.className = "export-button";
