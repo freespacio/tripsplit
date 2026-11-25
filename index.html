@@ -103,7 +103,7 @@ function readSavedTrips(){try{return JSON.parse(localStorage.getItem(TRIPS_KEY)|
 function saveTrip(record){const items=readSavedTrips().filter(x=>x.trip_id!==record.trip_id);items.unshift({...record,saved_at:new Date().toISOString()});try{localStorage.setItem(TRIPS_KEY,JSON.stringify(items.slice(0,100)))}catch{}}
 function renderSavedTrips(){
  const allItems=readSavedTrips(),section=document.getElementById("saved-section"),list=document.getElementById("saved-trips"),search=document.getElementById("saved-trip-search"),query=(search?.value||"").trim().toLowerCase();if(!allItems.length)return;section.hidden=false;
- const items=allItems.filter(x=>[x.name,x.participant_name,x.currency,x.role].filter(Boolean).join(" ").toLowerCase().includes(query));
+ const items=allItems.filter(x=>[x.name,x.participant_name,x.currency,x.role,...(Array.isArray(x.participant_names)?x.participant_names:[])].filter(Boolean).join(" ").toLowerCase().includes(query));
  const today=new Date();today.setHours(0,0,0,0);const groups=[{name:"Current",items:[]},{name:"Upcoming",items:[]},{name:"Past",items:[]}];
  items.forEach(x=>{const start=x.start_date?new Date(x.start_date+"T00:00:00"):null,end=x.end_date?new Date(x.end_date+"T00:00:00"):null;const n=(x.status==="closed"||x.status==="archived"||(end&&end<today))?2:((start&&start>today)?1:0);groups[n].items.push(x)});
  list.replaceChildren();if(!items.length){const empty=document.createElement("p");empty.className="saved-empty";empty.textContent="No saved trips match your search.";list.append(empty);return;}groups.forEach(g=>{if(!g.items.length)return;const section=document.createElement("section");section.className="trip-group";const h=document.createElement("h3");h.textContent=g.name;section.append(h);
