@@ -21,7 +21,7 @@ main{display:grid;gap:18px}.hero{background:var(--paper);border:1px solid var(--
 .eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:750;margin:0 0 12px}
 h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0 0 10px}.meta{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
 .grid{display:grid;grid-template-columns:1fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px}.card h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
-.people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.participant-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.35;white-space:nowrap;vertical-align:middle}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
+.people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.participant-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.35;white-space:nowrap;vertical-align:middle}.record-type-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 9px;border:1px solid;border-radius:7px;font-size:10px;font-weight:750;letter-spacing:.15px;line-height:1.4;white-space:nowrap;vertical-align:middle;background:#eef1f3;color:#4d5963;border-color:#d7dde2}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
 .participant-link-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.participant-link-button{border:1px solid #d8dfe6;border-radius:8px;background:#fff;color:var(--accent-dark);font-size:11px;font-weight:700;padding:7px 9px;min-height:34px;white-space:nowrap;cursor:pointer}.participant-link-button:disabled{opacity:.6}.participant-link-result{display:grid;gap:9px;padding:12px;margin:0 0 8px 43px;background:var(--soft);border-radius:10px;font-size:12px;overflow-wrap:anywhere}.participant-link-result p{margin:0;line-height:1.5}.participant-link-result button{justify-self:start;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;padding:8px 11px}.participant-link-result a{color:var(--accent-dark);font-weight:650}
 .add-form{display:grid;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}.add-form label{font-size:12px;font-weight:700}.add-form input{width:100%;height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:0 11px;font:inherit}.add-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:11px 14px}.add-form button:disabled{opacity:.6}.invite-result{margin-top:12px;padding:12px;border:1px solid #d5e3dd;background:var(--soft);border-radius:10px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.invite-result a{color:var(--accent-dark);font-weight:650}.copy-invite{margin-top:9px;background:white!important;color:var(--accent-dark)!important;border:1px solid #c9d8d2!important}.form-error{color:var(--danger);font-size:12px}.placeholder{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
 .expense-form{display:grid;gap:12px;margin:0;padding:18px 20px 0;overflow:auto;min-height:0}
@@ -181,7 +181,7 @@ body{background:#fff!important;color:#17202b!important;font-size:10pt}
 .print-report table.expenses-table th:nth-child(6),.print-report table.expenses-table td:nth-child(6){width:12%;white-space:nowrap;overflow-wrap:normal}
 .print-report table.expenses-table th:nth-child(7),.print-report table.expenses-table td:nth-child(7){width:26%;overflow-wrap:anywhere}
 .print-report th,.print-report td{border:1px solid #dce2e8;padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
-.print-report th{background:#f0f3f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.print-report th{background:#f0f3f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.print-report .participant-pill,.print-report .record-type-pill{-webkit-print-color-adjust:exact;print-color-adjust:exact;display:inline-flex;margin:1px 2px 1px 0}
 .print-report tr{break-inside:avoid}
 .print-report .report-meta{font-size:9pt;margin-bottom:6mm}
 .print-report .report-footer{font-size:8pt;color:#687483;margin-top:8mm;border-top:1px solid #dce2e8;padding-top:3mm}
@@ -280,6 +280,26 @@ function participantPill(name,id) {
   pill.className = "participant-pill";
   pill.textContent = name || "Unknown";
   const colour = participantColour(id);
+  pill.style.backgroundColor = colour.background;
+  pill.style.color = colour.text;
+  pill.style.borderColor = colour.border;
+  return pill;
+}
+const RECORD_TYPE_PALETTE = {
+  "Accommodation":{background:"#e9edf3",text:"#40516a",border:"#cbd4e0"},
+  "Food & drink":{background:"#e9f0eb",text:"#3e5b49",border:"#cbd9cf"},
+  "Transport":{background:"#f0eee8",text:"#625943",border:"#dcd6c7"},
+  "Activities":{background:"#e9eff0",text:"#405c61",border:"#cbd9db"},
+  "Shopping":{background:"#f0ebef",text:"#665361",border:"#ddd0da"},
+  "Groceries":{background:"#edf0e8",text:"#566044",border:"#d6ddc9"},
+  "Other":{background:"#eef0f2",text:"#56616c",border:"#d7dde2"}
+};
+function recordTypePill(value) {
+  const category = value || "Other";
+  const colour = RECORD_TYPE_PALETTE[category] || RECORD_TYPE_PALETTE.Other;
+  const pill = document.createElement("span");
+  pill.className = "record-type-pill";
+  pill.textContent = category;
   pill.style.backgroundColor = colour.background;
   pill.style.color = colour.text;
   pill.style.borderColor = colour.border;
@@ -717,7 +737,7 @@ function renderTrip(data, tripId, token) {
       const name = document.createElement("div"); name.className = "expense-name"; name.textContent = expense.description;
       const amount = document.createElement("div"); amount.className = "expense-amount"; amount.textContent = formatMoney(expense.amount_cents);
       const meta = document.createElement("div"); meta.className = "expense-meta";
-      meta.append(document.createTextNode((expense.category || "Other") + " · " + dateLabel(expense.expense_date) + (expense.expense_time ? " · " + String(expense.expense_time).slice(0,5) : "") + " · paid by "),participantPill(expense.payer_name,expense.payer_id));
+      meta.append(recordTypePill(expense.category),document.createTextNode(" · " + dateLabel(expense.expense_date) + (expense.expense_time ? " · " + String(expense.expense_time).slice(0,5) : "") + " · paid by "),participantPill(expense.payer_name,expense.payer_id));
       const split = document.createElement("div"); split.className = "expense-split";
       (expense.shares || []).slice().sort(sortByParticipantName).forEach((share,index) => {
         if (index) split.append(document.createTextNode(" · "));
@@ -1341,22 +1361,22 @@ function renderTrip(data, tripId, token) {
     thead.append(headerRow);
     const tbody=document.createElement("tbody");
     if(!rows.length){const row=document.createElement("tr"),cell=document.createElement("td");cell.colSpan=headers.length;cell.textContent="No records";row.append(cell);tbody.append(row);}
-    else rows.forEach(values=>{const row=document.createElement("tr");values.forEach(value=>{const cell=document.createElement("td");cell.textContent=value==null?"":String(value);row.append(cell);});tbody.append(row);});
+    else rows.forEach(values=>{const row=document.createElement("tr");values.forEach(value=>{const cell=document.createElement("td");if(value instanceof Node)cell.append(value);else if(Array.isArray(value))cell.append(...value);else cell.textContent=value==null?"":String(value);row.append(cell);});tbody.append(row);});
     table.append(thead,tbody);report.append(table);
   };
   addReportTable("Participants",["Name","Role","Status"],(data.participants||[]).slice().sort(sortByParticipantName).map(person=>[
-    person.name||"",person.role||(person.is_organiser?"Organiser":"Participant"),person.is_active===false?"Removed":(person.status||"Active")
+    participantPill(person.name,person.id),person.role||(person.is_organiser?"Organiser":"Participant"),person.is_active===false?"Removed":(person.status||"Active")
   ]));
   addReportTable("Expenses",["Date","Time","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
-    item.expense_date||"",item.expense_time?String(item.expense_time).slice(0,5):"",item.description||"",item.category||"Other",item.payer_name||"",formatMoney(item.amount_cents),
-    (item.shares||[]).map(share=>share.participant_name+": "+formatMoney(share.share_cents)).join("; ")
+    item.expense_date||"",item.expense_time?String(item.expense_time).slice(0,5):"",item.description||"",recordTypePill(item.category),participantPill(item.payer_name,item.payer_id),formatMoney(item.amount_cents),
+    (item.shares||[]).slice().sort(sortByParticipantName).flatMap((share,index)=>index?[document.createTextNode(" · "),participantPill(share.participant_name,share.participant_id),document.createTextNode(" · "+formatMoney(share.share_cents))]:[participantPill(share.participant_name,share.participant_id),document.createTextNode(" · "+formatMoney(share.share_cents))])
   ]));
   addReportTable("Balances",["Participant","Expenses paid","Share of expenses","Repayment adjustment","Net balance"],balances.map(item=>[
-    item.person.name,formatMoney(item.paid),formatMoney(item.share),formatMoney(item.settlementAdjustment),
+    participantPill(item.person.name,item.person.id),formatMoney(item.paid),formatMoney(item.share),formatMoney(item.settlementAdjustment),
     item.net>0?"Gets back "+formatMoney(item.net):item.net<0?"Owes "+formatMoney(Math.abs(item.net)):"Settled"
   ]));
   addReportTable("Recorded repayments",["Date","Paid by","Received by","Amount","Notes"],(data.settlements||[]).filter(item=>item.status==="paid").map(item=>[
-    item.settlement_date||"",item.from_name||"",item.to_name||"",formatMoney(item.amount_cents),item.notes||""
+    item.settlement_date||"",participantPill(item.from_name,item.from_participant_id),participantPill(item.to_name,item.to_participant_id),formatMoney(item.amount_cents),item.notes||""
   ]));
   const reportFooter=document.createElement("p");reportFooter.className="report-footer";
   reportFooter.textContent="Generated by TripSplit. Amounts are shown in "+(trip.base_currency||"EUR")+". Recorded repayments adjust balances and are not included as expenses.";
