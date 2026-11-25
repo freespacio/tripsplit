@@ -118,7 +118,8 @@ function renderSavedTrips(){
  const actions=document.createElement("div");actions.className="saved-trip-actions";const open=document.createElement("button");open.type="button";open.textContent="Open trip";open.addEventListener("click",()=>location.href="trip.html#trip="+encodeURIComponent(x.trip_id)+"&token="+encodeURIComponent(x.token));
  const remove=document.createElement("button");remove.type="button";remove.className="remove-trip";remove.textContent="Remove";remove.addEventListener("click",()=>{if(!confirm("Remove this trip from this device? This does not delete the trip or revoke access."))return;localStorage.setItem(TRIPS_KEY,JSON.stringify(readSavedTrips().filter(y=>y.trip_id!==x.trip_id)));renderSavedTrips()});actions.append(open,remove);row.append(info,actions);section.append(row)});list.append(section)});
 }
-document.getElementById("saved-trip-search").addEventListener("input",renderSavedTrips);\ndocument.getElementById("join-form").addEventListener("submit",async event=>{
+document.getElementById("saved-trip-search").addEventListener("input",renderSavedTrips);
+document.getElementById("join-form").addEventListener("submit",async event=>{
  event.preventDefault();
  const input=document.getElementById("join-link"),button=document.getElementById("join-submit"),box=document.getElementById("join-status");
  box.className="status";box.textContent="";
