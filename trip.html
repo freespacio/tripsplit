@@ -24,7 +24,15 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.participant-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.35;white-space:nowrap;vertical-align:middle}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
 .participant-link-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.participant-link-button{border:1px solid #d8dfe6;border-radius:8px;background:#fff;color:var(--accent-dark);font-size:11px;font-weight:700;padding:7px 9px;min-height:34px;white-space:nowrap;cursor:pointer}.participant-link-button:disabled{opacity:.6}.participant-link-result{display:grid;gap:9px;padding:12px;margin:0 0 8px 43px;background:var(--soft);border-radius:10px;font-size:12px;overflow-wrap:anywhere}.participant-link-result p{margin:0;line-height:1.5}.participant-link-result button{justify-self:start;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;padding:8px 11px}.participant-link-result a{color:var(--accent-dark);font-weight:650}
 .add-form{display:grid;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}.add-form label{font-size:12px;font-weight:700}.add-form input{width:100%;height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:0 11px;font:inherit}.add-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:11px 14px}.add-form button:disabled{opacity:.6}.invite-result{margin-top:12px;padding:12px;border:1px solid #d5e3dd;background:var(--soft);border-radius:10px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.invite-result a{color:var(--accent-dark);font-weight:650}.copy-invite{margin-top:9px;background:white!important;color:var(--accent-dark)!important;border:1px solid #c9d8d2!important}.form-error{color:var(--danger);font-size:12px}.placeholder{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
-.expense-form{display:grid;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}
+.expense-form{display:grid;gap:12px;margin:0;padding:18px 20px 0;overflow:auto;min-height:0}
+.expense-dialog{width:min(680px,calc(100% - 32px));max-height:90dvh;padding:0;border:1px solid var(--line);border-radius:18px;background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(15,30,40,.24);overflow:hidden;flex-direction:column}
+.expense-dialog[open]{display:flex}.expense-dialog::backdrop{background:rgba(15,25,32,.48);backdrop-filter:blur(3px)}
+.expense-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.expense-dialog-header h2{margin:0;font-size:18px}
+.expense-form-actions{position:sticky;bottom:0;display:flex;gap:9px;padding:12px 0 calc(14px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);z-index:2}
+.expense-form-actions button{flex:1;min-height:48px}
+.new-expense-button{display:inline-flex;align-items:center;justify-content:center;margin:12px 0;padding:9px 13px;border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.expense-fab{display:none}
 .expense-form label,.field-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
 .expense-form input,.expense-form select,.expense-form textarea{width:100%;min-height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:9px 11px;font:inherit;background:#fff;color:var(--ink)}
 .expense-form textarea{min-height:70px;resize:vertical}
@@ -43,6 +51,7 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .split-option input{width:16px;height:16px;min-height:0;accent-color:var(--accent)}
 .expense-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:12px 14px}
 .expense-form button:disabled{opacity:.6}
+.expense-form-actions button[type=button]{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .expense-feedback{font-size:12px;line-height:1.5;color:var(--danger)}
 .expense-empty{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
 .balance-card{grid-column:1/-1}
@@ -79,7 +88,7 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .participants-dialog-header h2{margin:0;font-size:18px}
 .dialog-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);font-size:21px;line-height:1;cursor:pointer;flex:0 0 auto}
 .participants-button{margin:12px 8px 0 0;padding:9px 13px;border:1px solid #c9d8d2;border-radius:9px;background:var(--soft);color:var(--accent-dark);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
-@media(max-width:680px){.participants-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:82dvh;border-radius:20px 20px 0 0;border-bottom:0}.participants-dialog .card{padding:20px 18px calc(24px + env(safe-area-inset-bottom))}}
+@media(max-width:680px){.participants-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:82dvh;border-radius:20px 20px 0 0;border-bottom:0}.participants-dialog .card{padding:20px 18px calc(24px + env(safe-area-inset-bottom))}.expense-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:92dvh;border-radius:20px 20px 0 0;border-bottom:0}.expense-dialog-header{padding:16px 18px}.expense-form{padding:16px 18px 0}.new-expense-button{display:none}.expense-fab{position:fixed;display:grid;place-items:center;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);width:60px;height:60px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:34px;line-height:1;box-shadow:0 8px 24px rgba(20,50,43,.28);z-index:30;cursor:pointer}.shell{padding-bottom:105px}}
 
 
 
@@ -556,16 +565,25 @@ function renderTrip(data, tripId, token) {
 
   const expenseCard = document.createElement("section"); expenseCard.className = "card";
   const expenseTitle = document.createElement("h2"); expenseTitle.textContent = "Expenses";
+  const newExpenseButton = document.createElement("button"); newExpenseButton.type = "button"; newExpenseButton.className = "new-expense-button"; newExpenseButton.textContent = "＋ New expense";
+  const expenseFab = document.createElement("button"); expenseFab.type = "button"; expenseFab.className = "expense-fab"; expenseFab.setAttribute("aria-label","Add new expense"); expenseFab.textContent = "+";
+  const expenseDialog = document.createElement("dialog"); expenseDialog.className = "expense-dialog"; expenseDialog.setAttribute("aria-label","Expense form");
+  const expenseDialogHeader = document.createElement("div"); expenseDialogHeader.className = "expense-dialog-header";
+  const expenseDialogTitle = document.createElement("h2"); expenseDialogTitle.textContent = "New expense";
+  const closeExpenseDialog = document.createElement("button"); closeExpenseDialog.type = "button"; closeExpenseDialog.className = "dialog-close"; closeExpenseDialog.setAttribute("aria-label","Close expense form"); closeExpenseDialog.textContent = "×";
+  closeExpenseDialog.addEventListener("click",() => expenseDialog.close());
+  expenseDialogHeader.append(expenseDialogTitle,closeExpenseDialog); expenseDialog.append(expenseDialogHeader);
   const expenseHint = document.createElement("p"); expenseHint.className = "hint"; expenseHint.textContent = "Record shared spending and split it fairly.";
   const exportExpenses = document.createElement("button");
   exportExpenses.type = "button";
   exportExpenses.className = "export-button";
   exportExpenses.textContent = "Export expenses CSV";
   exportExpenses.addEventListener("click", () => {
-    const rows = [["Date","Description","Category","Paid by","Amount","Currency","Split details","Notes"]];
+    const rows = [["Date","Time","Description","Category","Paid by","Amount","Currency","Split details","Notes"]];
     (data.expenses || []).forEach(item => {
       rows.push([
         item.expense_date || "",
+        item.expense_time || "",
         item.description || "",
         item.category || "Other",
         item.payer_name || "",
@@ -586,7 +604,7 @@ function renderTrip(data, tripId, token) {
     if (!items || !items.length) {
       const empty = document.createElement("div");
       empty.className = "expense-empty";
-      empty.textContent = "No expenses yet. Add the first shared expense below.";
+      empty.textContent = "No expenses yet. Tap + to add the first shared expense.";
       expenseList.append(empty);
       return;
     }
@@ -595,7 +613,7 @@ function renderTrip(data, tripId, token) {
       const name = document.createElement("div"); name.className = "expense-name"; name.textContent = expense.description;
       const amount = document.createElement("div"); amount.className = "expense-amount"; amount.textContent = formatMoney(expense.amount_cents);
       const meta = document.createElement("div"); meta.className = "expense-meta";
-      meta.append(document.createTextNode((expense.category || "Other") + " · " + dateLabel(expense.expense_date) + " · paid by "),participantPill(expense.payer_name,expense.payer_id));
+      meta.append(document.createTextNode((expense.category || "Other") + " · " + dateLabel(expense.expense_date) + (expense.expense_time ? " · " + String(expense.expense_time).slice(0,5) : "") + " · paid by "),participantPill(expense.payer_name,expense.payer_id));
       const split = document.createElement("div"); split.className = "expense-split";
       (expense.shares || []).forEach((share,index) => {
         if (index) split.append(document.createTextNode(" · "));
@@ -617,7 +635,7 @@ function renderTrip(data, tripId, token) {
     });
   };
   renderExpenses(data.expenses || []);
-  expenseCard.append(expenseTitle,expenseHint,exportExpenses,expenseList);
+  expenseCard.append(expenseTitle,expenseHint,newExpenseButton,exportExpenses,expenseList);
 
   if (trip.status === "active") {
     const expenseForm = document.createElement("form"); expenseForm.className = "expense-form";
@@ -629,7 +647,9 @@ function renderTrip(data, tripId, token) {
     const categorySelect = document.createElement("select"); categorySelect.name = "category";
     ["Accommodation","Food & drink","Transport","Activities","Shopping","Groceries","Other"].forEach(category => { const option = document.createElement("option"); option.value = category; option.textContent = category; categorySelect.append(option); });
     const dateLabelEl = document.createElement("label"); dateLabelEl.textContent = "Date";
-    const dateInput = document.createElement("input"); dateInput.name = "expense_date"; dateInput.type = "date"; const today = new Date(); dateInput.value = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0"); dateInput.required = true;
+    const dateInput = document.createElement("input"); dateInput.name = "expense_date"; dateInput.type = "date"; const today = new Date(); const localDateValue = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0"); const localTimeValue = String(today.getHours()).padStart(2,"0") + ":" + String(today.getMinutes()).padStart(2,"0"); dateInput.value = localDateValue; dateInput.required = true;
+    const timeLabelEl = document.createElement("label"); timeLabelEl.textContent = "Time";
+    const timeInput = document.createElement("input"); timeInput.name = "expense_time"; timeInput.type = "time"; timeInput.value = localTimeValue; timeInput.required = true;
     const payerLabel = document.createElement("label"); payerLabel.textContent = "Who paid?";
     const payerSelect = document.createElement("select"); payerSelect.name = "payer_id"; payerSelect.required = true;
     activeParticipants.forEach(person => { const option = document.createElement("option"); option.value = person.id; option.textContent = person.name; if (person.id === access.participant_id) option.selected = true; payerSelect.append(option); });
@@ -774,7 +794,8 @@ function renderTrip(data, tripId, token) {
       descriptionInput.value = expense.description || "";
       amountInput.value = (expense.amount_cents / 100).toFixed(2);
       categorySelect.value = expense.category || "Other";
-      dateInput.value = expense.expense_date || "";
+      dateInput.value = expense.expense_date || localDateValue;
+      timeInput.value = expense.expense_time ? String(expense.expense_time).slice(0,5) : localTimeValue;
       payerSelect.value = expense.payer_id || "";
       notesInput.value = expense.notes || "";
       const included = new Set((expense.shares || []).map(share => share.participant_id));
@@ -789,7 +810,9 @@ function renderTrip(data, tripId, token) {
       });
       preservedEditShares = {amount:expense.amount_cents,method:splitMethodSelect.value,ids:(expense.shares || []).map(share=>share.participant_id),shares:(expense.shares || []).map(share=>({participant_id:share.participant_id,share_cents:share.share_cents}))};
       updateSplitPreview();
-      submit.textContent = "Save changes";
+      submit.textContent = "Update expense";
+      expenseDialogTitle.textContent = "Edit expense";
+      expenseDialog.showModal();
       cancelEditButton.hidden = false;
       feedback.style.color = "var(--muted)";
       feedback.textContent = "Editing this expense. Its existing allocations are preserved unless you change the split.";
@@ -817,14 +840,20 @@ function renderTrip(data, tripId, token) {
     cancelEditButton.addEventListener("click",() => {
       editingExpenseId = null; preservedEditShares = null;
       expenseForm.reset();
-      dateInput.value = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+      const resetNow = new Date();
+      dateInput.value = resetNow.getFullYear() + "-" + String(resetNow.getMonth()+1).padStart(2,"0") + "-" + String(resetNow.getDate()).padStart(2,"0");
+      timeInput.value = String(resetNow.getHours()).padStart(2,"0") + ":" + String(resetNow.getMinutes()).padStart(2,"0");
       payerSelect.value = access.participant_id;
       Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input=>input.checked=true);
       splitMethodSelect.value = "equal"; updateSplitEditor();
       submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
+      expenseDialogTitle.textContent = "New expense";
+      if (expenseDialog.open) expenseDialog.close();
     });
     const feedback = document.createElement("div"); feedback.className = "expense-feedback"; feedback.setAttribute("aria-live","polite");
-    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,payerLabel,payerSelect,splitLabel,splitOptions,splitMethodLabel,splitMethodSelect,splitEditor,splitPreview,notesLabel,notesInput,submit,cancelEditButton,feedback);
+    const expenseActions = document.createElement("div"); expenseActions.className = "expense-form-actions";
+    expenseActions.append(submit,cancelEditButton);
+    expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,timeLabelEl,timeInput,payerLabel,payerSelect,splitLabel,splitOptions,splitMethodLabel,splitMethodSelect,splitEditor,splitPreview,notesLabel,notesInput,feedback,expenseActions);
     expenseForm.addEventListener("submit", async event => {
       event.preventDefault();
       feedback.textContent = "";
@@ -840,7 +869,7 @@ function renderTrip(data, tripId, token) {
           headers:{"Content-Type":"application/json","apikey":API_KEY},
           body:JSON.stringify({
             action:editingExpenseId ? "editExpense" : "addExpense",trip_id:tripId,token,expense_id:editingExpenseId || undefined,description:descriptionInput.value.trim(),
-            category:categorySelect.value,amount_cents:amountCents,expense_date:dateInput.value,
+            category:categorySelect.value,amount_cents:amountCents,expense_date:dateInput.value,expense_time:timeInput.value,
             payer_id:payerSelect.value,split_type:splitResult.method,split_shares:splitResult.shares,notes:notesInput.value.trim()
           })
         });
@@ -854,10 +883,27 @@ function renderTrip(data, tripId, token) {
         feedback.textContent = error.message || "Please try again.";
       } finally {
         submit.disabled = false;
-        submit.textContent = "Save expense";
+        submit.textContent = editingExpenseId ? "Update expense" : "Save expense";
       }
     });
-    expenseCard.append(expenseForm);
+    expenseDialog.append(expenseForm);
+    expenseCard.append(expenseDialog);
+    const openNewExpense = () => {
+      editingExpenseId = null; preservedEditShares = null;
+      expenseForm.reset();
+      const resetNow = new Date();
+      dateInput.value = resetNow.getFullYear() + "-" + String(resetNow.getMonth()+1).padStart(2,"0") + "-" + String(resetNow.getDate()).padStart(2,"0");
+      timeInput.value = String(resetNow.getHours()).padStart(2,"0") + ":" + String(resetNow.getMinutes()).padStart(2,"0");
+      payerSelect.value = access.participant_id;
+      Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input=>input.checked=true);
+      splitMethodSelect.value = "equal"; updateSplitEditor();
+      submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
+      expenseDialogTitle.textContent = "New expense";
+      expenseDialog.showModal();
+    };
+    newExpenseButton.addEventListener("click",openNewExpense);
+    expenseFab.addEventListener("click",openNewExpense);
+    expenseCard.append(expenseFab);
   } else {
     const closed = document.createElement("p"); closed.className = "hint"; closed.style.marginTop = "14px"; closed.textContent = "This trip is not active, so new expenses cannot be added.";
     expenseCard.append(closed);
@@ -1052,6 +1098,7 @@ function renderTrip(data, tripId, token) {
         category: item.category || "Other",
         amount_cents: Number(item.amount_cents || 0),
         expense_date: item.expense_date || null,
+        expense_time: item.expense_time || null,
         payer_id: item.payer_id,
         payer_name: item.payer_name || "",
         split_type: item.split_type || "equal",
@@ -1133,8 +1180,8 @@ function renderTrip(data, tripId, token) {
   addReportTable("Participants",["Name","Role","Status"],(data.participants||[]).map(person=>[
     person.name||"",person.role||(person.is_organiser?"Organiser":"Participant"),person.is_active===false?"Removed":(person.status||"Active")
   ]));
-  addReportTable("Expenses",["Date","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
-    item.expense_date||"",item.description||"",item.category||"Other",item.payer_name||"",formatMoney(item.amount_cents),
+  addReportTable("Expenses",["Date","Time","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
+    item.expense_date||"",item.expense_time?String(item.expense_time).slice(0,5):"",item.description||"",item.category||"Other",item.payer_name||"",formatMoney(item.amount_cents),
     (item.shares||[]).map(share=>share.participant_name+": "+formatMoney(share.share_cents)).join("; ")
   ]));
   addReportTable("Balances",["Participant","Expenses paid","Share of expenses","Repayment adjustment","Net balance"],balances.map(item=>[
