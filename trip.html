@@ -1064,7 +1064,12 @@ function renderTrip(data, tripId, token) {
     recordedSettlements.forEach(item => {
       const line = document.createElement("div"); line.className = "settlement-record";
       const description = document.createElement("span");
-      description.textContent = item.from_name + " paid " + item.to_name + " · " + dateLabel(item.settlement_date);
+      description.append(
+        participantPill(item.from_name,item.from_participant_id),
+        document.createTextNode(" paid "),
+        participantPill(item.to_name,item.to_participant_id),
+        document.createTextNode(" · " + dateLabel(item.settlement_date))
+      );
       const amount = document.createElement("strong"); amount.textContent = formatMoney(item.amount_cents);
       line.append(description,amount); history.append(line);
     });
