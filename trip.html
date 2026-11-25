@@ -94,6 +94,13 @@ body{background:#fff!important;color:#17202b!important;font-size:10pt}
 .print-report h2{font-size:14pt;margin:8mm 0 3mm;border-bottom:1px solid #d8dfe6;padding-bottom:2mm;break-after:avoid}
 .print-report p{margin:2mm 0;color:#485563}
 .print-report table{width:100%;border-collapse:collapse;margin:2mm 0 5mm;font-size:8.5pt;break-inside:auto}
+.print-report table.expenses-table{table-layout:fixed}
+.print-report table.expenses-table th:nth-child(1),.print-report table.expenses-table td:nth-child(1){width:11%}
+.print-report table.expenses-table th:nth-child(2),.print-report table.expenses-table td:nth-child(2){width:20%}
+.print-report table.expenses-table th:nth-child(3),.print-report table.expenses-table td:nth-child(3){width:12%}
+.print-report table.expenses-table th:nth-child(4),.print-report table.expenses-table td:nth-child(4){width:15%}
+.print-report table.expenses-table th:nth-child(5),.print-report table.expenses-table td:nth-child(5){width:15%;white-space:nowrap;overflow-wrap:normal}
+.print-report table.expenses-table th:nth-child(6),.print-report table.expenses-table td:nth-child(6){width:27%;overflow-wrap:anywhere}
 .print-report th,.print-report td{border:1px solid #dce2e8;padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
 .print-report th{background:#f0f3f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .print-report tr{break-inside:avoid}
@@ -948,7 +955,7 @@ function renderTrip(data, tripId, token) {
   report.append(reportTitle,reportMeta);
   const addReportTable = (heading,headers,rows) => {
     const sectionTitle=document.createElement("h2");sectionTitle.textContent=heading;report.append(sectionTitle);
-    const table=document.createElement("table"),thead=document.createElement("thead"),headerRow=document.createElement("tr");
+    const table=document.createElement("table");if(heading==="Expenses")table.classList.add("expenses-table");const thead=document.createElement("thead"),headerRow=document.createElement("tr");
     headers.forEach(value=>{const cell=document.createElement("th");cell.textContent=value;headerRow.append(cell);});
     thead.append(headerRow);
     const tbody=document.createElement("tbody");
