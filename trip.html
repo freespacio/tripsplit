@@ -32,6 +32,8 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .expense-form-actions{position:sticky;bottom:0;display:flex;gap:9px;padding:12px 0 calc(14px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);z-index:2}
 .expense-form-actions button{flex:1;min-height:48px}
 .new-expense-button{display:inline-flex;align-items:center;justify-content:center;margin:12px 0;padding:9px 13px;border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.repayment-button{display:inline-flex!important;align-items:center;justify-content:center;margin:12px 0;padding:10px 14px;border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-size:13px;font-weight:750;cursor:pointer;min-height:42px}
+.repayment-button:hover{background:var(--accent-dark)}
 .expense-fab{display:none}
 .expense-form label:not(.split-option),.expense-form .field-label{display:block;font-size:16px;font-weight:700;margin-bottom:6px}
 .expense-form input,.expense-form select,.expense-form textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:48px;border:1px solid #d8dfe6;border-radius:9px;padding:10px 11px;font:inherit;background:#fff;color:var(--ink)}
@@ -1017,7 +1019,8 @@ function renderTrip(data, tripId, token) {
     const amount = Math.min(debtor.remaining,creditor.remaining);
     if (amount > 0) {
       const line = document.createElement("div"); line.className = "settlement-item";
-      const text = document.createElement("span"); text.textContent = debtor.name + " pays " + creditor.name;
+      const text = document.createElement("span");
+      text.append(participantPill(debtor.name,debtor.id),document.createTextNode(" pays "),participantPill(creditor.name,creditor.id));
       const value = document.createElement("strong"); value.textContent = formatMoney(amount);
       line.append(text,value);
       settlementList.append(line);
@@ -1067,7 +1070,7 @@ function renderTrip(data, tripId, token) {
     });
   }
 
-  const repaymentButton = document.createElement("button"); repaymentButton.type = "button"; repaymentButton.className = "new-expense-button"; repaymentButton.textContent = "＋ Record repayment";
+  const repaymentButton = document.createElement("button"); repaymentButton.type = "button"; repaymentButton.className = "repayment-button"; repaymentButton.textContent = "＋ Record repayment";
   const settlementDialog = document.createElement("dialog"); settlementDialog.className = "expense-dialog settlement-dialog"; settlementDialog.setAttribute("aria-label","Record a completed repayment");
   const settlementDialogHeader = document.createElement("div"); settlementDialogHeader.className = "expense-dialog-header";
   const settlementDialogTitle = document.createElement("h2"); settlementDialogTitle.textContent = "Record a completed repayment";
