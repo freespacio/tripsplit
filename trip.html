@@ -91,6 +91,38 @@ h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0
 .dialog-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);font-size:21px;line-height:1;cursor:pointer;flex:0 0 auto}
 .participants-button{margin:12px 8px 0 0;padding:9px 13px;border:1px solid #c9d8d2;border-radius:9px;background:var(--soft);color:var(--accent-dark);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
 @media(max-width:680px){.participants-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:82dvh;border-radius:20px 20px 0 0;border-bottom:0}.participants-dialog .card{padding:20px 18px calc(24px + env(safe-area-inset-bottom))}.expense-dialog{position:fixed;inset:auto 0 0;margin:0;width:100%;max-width:none;max-height:92dvh;border-radius:20px 20px 0 0;border-bottom:0}.expense-dialog-header{padding:16px 18px}.expense-form{padding:16px 18px 0;min-width:0}.expense-form label,.expense-form .field-label{font-size:14px}.expense-form input,.expense-form select,.expense-form textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:50px}.expense-form select{height:50px;padding-top:0;padding-bottom:0}.expense-form input[type=date],.expense-form input[type=time]{width:100%;min-width:0;max-width:100%;padding-left:8px;padding-right:8px}.new-expense-button{display:none}.expense-fab{position:fixed;display:grid;place-items:center;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);width:60px;height:60px;border:0;border-radius:50%;background:var(--accent);color:#fff;font-size:34px;line-height:1;box-shadow:0 8px 24px rgba(20,50,43,.28);z-index:30;cursor:pointer}.shell{padding-bottom:105px}}
+/* iPhone Safari: native date/time and select controls need explicit sizing. */
+@media(max-width:680px) and (-webkit-touch-callout:none){
+  .expense-form input[type="date"],
+  .expense-form input[type="time"]{
+    display:block!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:50px!important;
+    min-height:50px!important;
+    padding:0 8px!important;
+    font-size:16px!important;
+    line-height:normal!important;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .expense-form select{
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:50px!important;
+    min-height:50px!important;
+    padding:0 11px!important;
+    font-size:16px!important;
+    line-height:normal!important;
+    -webkit-appearance:menulist;
+    appearance:auto;
+  }
+}
+
 
 
 
