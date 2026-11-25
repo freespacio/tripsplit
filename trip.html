@@ -99,8 +99,8 @@ updateOfflineStatus();
 const TRIPS_KEY="tripsplit_saved_trips_v1";
 function rememberTrip(record){try{const stored=JSON.parse(localStorage.getItem(TRIPS_KEY)||"[]");const items=Array.isArray(stored)?stored:[];localStorage.setItem(TRIPS_KEY,JSON.stringify([{...record,saved_at:new Date().toISOString()},...items.filter(x=>x.trip_id!==record.trip_id)].slice(0,100)))}catch(error){console.warn("Unable to save trip on this device.")}}
 
-function showError(message) {
-  const offline = !navigator.onLine || /failed to fetch|networkerror|load failed/i.test(message||"");
+function showError(message, networkFailure = false) {
+  const offline = networkFailure || !navigator.onLine || /failed to fetch|networkerror|load failed/i.test(message||"");
   const panel = document.createElement("section");
   panel.className = "error";
   const title = document.createElement("strong");
@@ -865,7 +865,8 @@ async function openTrip() {
     rememberTrip({trip_id:tripId,token,name:data.trip.name,currency:data.trip.base_currency,start_date:data.trip.start_date||null,end_date:data.trip.end_date||null,status:data.trip.status,role:data.access.role,participant_name:data.access.participant_name||"",participant_names:(data.participants||[]).map(person=>person.name).filter(Boolean)});
     renderTrip(data, tripId, token);
   } catch(error) {
-    showError(error.message || "Please check your connection and try again.");
+    const networkFailure = error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(error.message || "");
+    showError(error.message || "Please check your connection and try again.", networkFailure);
   }
 }
 openTrip();
