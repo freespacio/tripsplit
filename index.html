@@ -48,6 +48,8 @@
     footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#87919b}
     @media(max-width:800px){.shell{padding:18px 16px 40px}header{margin:4px 0 40px}.hero{grid-template-columns:1fr;gap:34px}.intro{font-size:16px}.panel{padding:24px}.points{gap:12px 18px}footer{margin-top:42px}}
     @media(max-width:420px){.two{grid-template-columns:1fr;gap:0}.panel{padding:21px}h1{letter-spacing:-1.5px}}
+    .offline-banner{margin:0 0 18px;padding:12px 15px;border:1px solid #e8c98a;border-radius:12px;background:#fff7e8;color:#76521b;font-size:14px;line-height:1.5}
+    .offline-banner[hidden]{display:none}
   </style>
 </head>
 <body>
@@ -56,6 +58,7 @@
       <div class="mark" aria-hidden="true">T</div>
       <div class="brand">Trip<span>Split</span></div>
     </header>
+    <div id="offline-banner" class="offline-banner" role="status" aria-live="polite" hidden>You’re offline. Connect to Wi-Fi or mobile data to load or update your trips.</div>
     <section id="saved-section" class="saved-section" aria-label="Your saved trips"><h2>My Trips</h2><p class="sub">Your trips saved on this device.</p><div class="saved-search"><input id="saved-trip-search" type="search" placeholder="Search trips or participants" aria-label="Search saved trips"></div><div id="saved-trips" class="trip-groups"></div><div class="join-panel"><h3>Join an existing trip</h3><p class="sub">Paste your private trip link to add it to My Trips on this device.</p><form id="join-form"><label for="join-link">Private trip link</label><input id="join-link" type="url" inputmode="url" autocomplete="url" placeholder="https://…/trip.html#trip=…&token=…" required><button class="primary" id="join-submit" type="submit">Add trip</button></form><div id="join-status" class="status" role="status" aria-live="polite"></div></div></section>
     <main class="hero">
       <section>
@@ -101,6 +104,11 @@ const API_KEY = "sb_publishable_jUydjsVbylX7cK5K2ppGuA_upHZCnPm";
 const form = document.getElementById("create-form");
 const submit = document.getElementById("submit");
 const statusBox = document.getElementById("status");
+const offlineBanner = document.getElementById("offline-banner");
+function updateOfflineStatus(){offlineBanner.hidden=navigator.onLine;}
+window.addEventListener("online",updateOfflineStatus);
+window.addEventListener("offline",updateOfflineStatus);
+updateOfflineStatus();
 
 const TRIPS_KEY="tripsplit_saved_trips_v1";
 function readSavedTrips(){try{return JSON.parse(localStorage.getItem(TRIPS_KEY)||"[]").filter(x=>x&&x.trip_id&&x.token)}catch{return []}}
@@ -141,7 +149,7 @@ document.getElementById("join-form").addEventListener("submit",async event=>{
   box.className="status success";box.textContent="Trip added to My Trips on this device.";
   input.value="";
   const open=document.createElement("button");open.type="button";open.className="secondary";open.style.marginTop="10px";open.textContent="Open trip";open.addEventListener("click",()=>{location.href="trip.html#trip="+encodeURIComponent(tripId)+"&token="+encodeURIComponent(token)});box.append(open);
- }catch(error){box.className="status error";box.textContent=error.message||"Something went wrong. Please try again.";}
+ }catch(error){box.className="status error";box.textContent=(!navigator.onLine||error instanceof TypeError)?"You’re offline. Connect to Wi-Fi or mobile data, then try adding the trip again.":(error.message||"Something went wrong. Please try again.");}
  finally{button.disabled=false;button.textContent="Add trip";}
 });
 
