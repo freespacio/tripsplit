@@ -18,26 +18,17 @@ header{display:flex;align-items:center;justify-content:space-between;gap:14px;ma
  .dashboard-link{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:8px 12px;color:var(--accent-dark);background:#fff;text-decoration:none;font-size:12px;font-weight:700;margin-right:auto}
 .access{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:99px;padding:8px 12px;white-space:nowrap}.access svg{width:15px;height:15px;flex:0 0 auto;color:var(--accent-dark)}
 main{display:grid;gap:18px}.hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 12px 35px rgba(25,42,55,.04);overflow:hidden}.hero-content{min-width:0;flex:1}
-/* Full-bleed trip cover: the image fades behind the financial summary. */
-.shell{position:relative;isolation:isolate}
-.trip-cover-backdrop{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100vw;height:900px;z-index:-1;pointer-events:none;overflow:hidden}
-.trip-cover-backdrop img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 45%;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 43%,rgba(0,0,0,.82) 57%,rgba(0,0,0,.35) 78%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 43%,rgba(0,0,0,.82) 57%,rgba(0,0,0,.35) 78%,transparent 100%)}
-header{position:relative;z-index:1;background:transparent}
-.hero.hero-has-cover{min-height:350px;align-items:flex-end;justify-content:flex-start;padding:34px 0 42px;background:transparent;border-color:transparent;border-radius:0;box-shadow:none;color:#fff;overflow:visible}
-.hero.hero-has-cover::before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(8,20,18,.44) 0%,rgba(8,20,18,.16) 65%,transparent 100%),linear-gradient(0deg,rgba(8,20,18,.3),transparent 62%);pointer-events:none}
-.hero.hero-has-cover .hero-content{position:relative;z-index:2;width:100%}
-.hero.hero-has-cover .eyebrow,.hero.hero-has-cover h1,.hero.hero-has-cover .meta{color:#fff}
-.hero.hero-has-cover .eyebrow{opacity:.9}
-.hero.hero-has-cover h1{text-shadow:0 2px 16px rgba(0,0,0,.24)}
-.hero.hero-has-cover .trip-duration-badge{background:rgba(255,255,255,.17);color:#fff;border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(8px)}
-.hero.hero-has-cover .trip-cover-wrap.trip-cover-overlay{position:absolute;inset:0;z-index:3;width:auto;max-width:none;display:block;pointer-events:none}
-.hero.hero-has-cover .trip-cover-actions{position:absolute;top:16px;right:0;z-index:3;pointer-events:auto}
-.hero.hero-has-cover .trip-cover-action{background:rgba(255,255,255,.94);color:#263b36;border:1px solid rgba(255,255,255,.65);box-shadow:0 2px 10px rgba(0,0,0,.12);backdrop-filter:blur(8px)}
-.hero.hero-has-cover .trip-cover-action.secondary{background:rgba(20,35,32,.58);color:#fff;border-color:rgba(255,255,255,.4)}
-.hero.hero-has-cover .trip-cover-status{position:absolute;right:0;bottom:10px;z-index:3;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.7);pointer-events:none}
-.hero.hero-has-cover .trip-cover-wrap .trip-cover-image{display:none}
-.financial-summary{position:relative;z-index:1}
-@media(max-width:680px){.trip-cover-backdrop{height:790px}.hero.hero-has-cover{min-height:300px;padding:26px 0 34px}.hero.hero-has-cover .trip-cover-actions{top:8px;right:0}.hero.hero-has-cover .trip-cover-status{right:0;bottom:4px}}
+/* Compact editorial cover with an overlapping trip-details card. */
+.hero.hero-has-cover{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.hero.hero-has-cover .trip-cover-wrap.trip-cover-overlay{position:relative;order:0;display:block;width:100%;max-width:none;flex:none;margin:0;padding:0;pointer-events:auto}
+.hero.hero-has-cover .trip-cover-wrap .trip-cover-image{display:block;width:100%;height:250px;max-height:34vw;min-height:170px;aspect-ratio:auto;object-fit:cover;object-position:center 48%;border:0;border-radius:16px}
+.hero.hero-has-cover .hero-content{position:relative;z-index:2;order:1;width:auto;min-width:0;margin:-42px 18px 0;padding:22px 24px 20px;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(25,42,55,.08)}
+.hero.hero-has-cover .trip-cover-actions{position:absolute;top:12px;right:12px;z-index:3}
+.hero.hero-has-cover .trip-cover-action{background:rgba(255,255,255,.94);color:#263b36;border:1px solid rgba(255,255,255,.72);box-shadow:0 2px 8px rgba(0,0,0,.12);backdrop-filter:blur(8px)}
+.hero.hero-has-cover .trip-cover-action.secondary{background:rgba(255,255,255,.88);color:#263b36;border-color:rgba(255,255,255,.72)}
+.hero.hero-has-cover .trip-cover-status{position:absolute;right:12px;bottom:10px;z-index:3;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.7);pointer-events:none}
+.hero.hero-has-cover .eyebrow{margin-top:0}
+@media(max-width:680px){.hero.hero-has-cover .trip-cover-wrap .trip-cover-image{height:180px;max-height:none;min-height:150px;border-radius:13px}.hero.hero-has-cover .hero-content{margin:-32px 10px 0;padding:18px 17px 16px;border-radius:14px}.hero.hero-has-cover .trip-cover-actions{top:9px;right:9px}.hero.hero-has-cover .trip-cover-status{right:9px;bottom:7px}}
 .trip-cover-wrap{width:190px;flex:0 0 190px;display:grid;gap:8px;align-content:center}.trip-cover-image,.trip-cover-placeholder{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)}.trip-cover-placeholder{display:grid;place-items:center;padding:12px;background:#f8fafb;border:1px dashed #cbd5dc;color:var(--muted);font-size:12px;text-align:center}.trip-cover-actions{display:flex;gap:7px;flex-wrap:wrap}.trip-cover-action{border:0;border-radius:8px;background:var(--accent);color:#fff;font-size:11px;font-weight:750;padding:8px 10px;min-height:34px}.trip-cover-action.secondary{background:#edf2f0;color:var(--accent-dark);border:1px solid #d5e2dc}.trip-cover-action:disabled{opacity:.6;cursor:wait}.trip-cover-status{font-size:11px;color:var(--muted);line-height:1.4;min-height:14px}.trip-cover-status:empty{display:none}.hero.hero-has-cover{min-height:320px;align-items:flex-end;justify-content:flex-start;padding:34px;background:#243b37;border-color:transparent;color:#fff}.hero.hero-has-cover::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(8,20,18,.72) 0%,rgba(8,20,18,.38) 58%,rgba(8,20,18,.08) 100%),linear-gradient(0deg,rgba(8,20,18,.42),transparent 58%);pointer-events:none}.hero.hero-has-cover .hero-content{position:relative;z-index:2;width:100%}.hero.hero-has-cover .eyebrow,.hero.hero-has-cover h1,.hero.hero-has-cover .meta{color:#fff}.hero.hero-has-cover .eyebrow{opacity:.88}.hero.hero-has-cover h1{text-shadow:0 2px 14px rgba(0,0,0,.2)}.hero.hero-has-cover .trip-duration-badge{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.24);backdrop-filter:blur(8px)}.trip-cover-wrap.trip-cover-overlay{position:absolute;inset:0;z-index:auto;width:auto;max-width:none;display:block;pointer-events:none}.trip-cover-wrap.trip-cover-overlay .trip-cover-image{position:absolute;inset:0;z-index:0;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;border:0;border-radius:0}.trip-cover-wrap.trip-cover-overlay .trip-cover-actions{position:absolute;top:16px;right:16px;z-index:3;pointer-events:auto}.trip-cover-wrap.trip-cover-overlay .trip-cover-action{background:rgba(255,255,255,.94);color:#263b36;border:1px solid rgba(255,255,255,.65);box-shadow:0 2px 10px rgba(0,0,0,.12);backdrop-filter:blur(8px)}.trip-cover-wrap.trip-cover-overlay .trip-cover-action.secondary{background:rgba(20,35,32,.58);color:#fff;border-color:rgba(255,255,255,.4)}.trip-cover-wrap.trip-cover-overlay .trip-cover-status{position:absolute;right:16px;bottom:12px;z-index:3;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.7);pointer-events:none}
 .eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:750;margin:0 0 12px}
 h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0 0 10px}.meta{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
@@ -519,17 +510,10 @@ function renderTrip(data, tripId, token) {
       hero.classList.add("hero-has-cover");
       coverWrap.classList.add("trip-cover-overlay");
       const coverImage = document.createElement("img");
+      coverImage.className = "trip-cover-image";
       coverImage.src = trip.cover_image_url;
-      coverImage.alt = "";
-      coverImage.setAttribute("aria-hidden","true");
-      const coverBackdrop = document.createElement("div");
-      coverBackdrop.className = "trip-cover-backdrop";
-      coverBackdrop.append(coverImage);
-      const shell = document.querySelector(".shell");
-      if (shell) {
-        shell.querySelectorAll(".trip-cover-backdrop").forEach(existing => existing.remove());
-        shell.insertBefore(coverBackdrop,shell.firstChild);
-      }
+      coverImage.alt = "Cover photo for " + trip.name;
+      coverWrap.append(coverImage);
     } else {
       const placeholder = document.createElement("div"); placeholder.className = "trip-cover-placeholder";
       placeholder.textContent = "Add a photo to personalise this trip";
