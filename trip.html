@@ -30,7 +30,7 @@ main{display:grid;gap:18px}.hero{position:relative;display:flex;align-items:cent
 h1{font-size:clamp(30px,5vw,42px);line-height:1.1;letter-spacing:-1.5px;margin:0 0 10px}.meta{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
 .grid{display:grid;grid-template-columns:1fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:23px}.card h2{font-size:17px;margin:0 0 5px;letter-spacing:-.3px}.hint{color:var(--muted);font-size:13px;line-height:1.5;margin:0}
  .trip-header-details{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.trip-duration-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:99px;background:var(--soft);color:var(--accent-dark);font-size:12px;font-weight:750}.financial-summary{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:22px;box-shadow:0 8px 26px rgba(25,42,55,.035)}.financial-summary-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.financial-summary-heading h2{font-size:17px;margin:0;letter-spacing:-.3px}.financial-summary-heading p{font-size:12px;color:var(--muted);margin:4px 0 0}.financial-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.financial-metric{min-width:0;border:1px solid #edf0f3;border-radius:12px;padding:13px;background:#fbfcfd}.financial-metric-label{font-size:11px;color:var(--muted);font-weight:650;line-height:1.4}.financial-metric-value{font-size:clamp(18px,3vw,25px);font-weight:800;letter-spacing:-.5px;line-height:1.25;margin-top:6px;overflow-wrap:anywhere}.financial-category-section{margin-top:20px}.financial-category-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.financial-category-heading h3{font-size:13px;margin:0}.financial-category-heading span{font-size:11px;color:var(--muted)}.financial-category-list{display:grid;gap:12px}.financial-category-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}.financial-category-name{font-size:12px;font-weight:650;display:flex;align-items:center;gap:7px;min-width:0}.financial-category-name .record-type-pill{font-size:10px}.financial-category-amount{font-size:12px;font-weight:750;white-space:nowrap}.financial-category-track{grid-column:1/-1;height:6px;background:#edf1f4;border-radius:99px;overflow:hidden}.financial-category-fill{height:100%;border-radius:99px;background:var(--accent)}.financial-summary-empty{font-size:12px;color:var(--muted);padding:12px;border:1px dashed var(--line);border-radius:10px}.financial-summary-toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:16px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#f8fafb;color:var(--accent-dark);font:inherit;font-size:12px;font-weight:750;cursor:pointer}.financial-summary-toggle:hover{background:var(--soft)}.financial-summary-toggle svg{width:15px;height:15px;transition:transform .18s ease}.financial-summary-toggle[aria-expanded=true] svg{transform:rotate(180deg)}.financial-summary-details[hidden]{display:none}.financial-participant-list{display:grid;gap:9px}.financial-participant-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(82px,auto);align-items:center;gap:10px;padding:9px 0;border-top:1px solid #edf0f3}.financial-participant-row>.participant-pill{justify-self:start;width:max-content;max-width:100%;min-width:0}.financial-participant-row>.participant-pill>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.financial-participant-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(82px,auto);gap:10px;padding:0 0 6px;color:var(--muted);font-size:10px;font-weight:750;text-align:right}.financial-participant-columns span:first-child{text-align:left}.financial-participant-total{font-size:13px;font-weight:800;white-space:nowrap;text-align:right}.financial-participant-owed{font-size:12px;font-weight:700;white-space:nowrap;text-align:right;color:var(--danger)}.participant-pill{gap:5px}.participant-pill svg{width:12px;height:12px;flex:0 0 12px;display:block}.spending-chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end;min-height:145px;padding:8px 0 0}.spending-chart-day{display:grid;grid-template-rows:20px 82px 17px 17px;gap:4px;justify-items:center;min-width:0}.spending-chart-value{font-size:9px;color:var(--muted);font-weight:650;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.spending-chart-track{width:min(100%,30px);height:82px;display:flex;align-items:flex-end;justify-content:center;background:#f0f3f5;border-radius:7px 7px 3px 3px;overflow:hidden}.spending-chart-bar{width:100%;min-height:0;background:var(--accent);border-radius:6px 6px 2px 2px}.spending-chart-label{font-size:10px;color:var(--muted);font-weight:650}.spending-chart-date{font-size:10px;color:var(--ink);font-weight:750}
-.people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.participant-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.35;white-space:nowrap;vertical-align:middle}.record-type-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 9px;border:1px solid;border-radius:7px;font-size:10px;font-weight:750;letter-spacing:.15px;line-height:1.4;white-space:nowrap;vertical-align:middle;background:#eef1f3;color:#4d5963;border-color:#d7dde2;gap:5px}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
+.people{display:grid;gap:0;margin-top:16px}.person{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #edf0f3;font-size:14px}.person-identity{display:inline-flex;align-items:center;gap:6px;min-width:0}.person-identity .person-name{min-width:0;overflow-wrap:anywhere}.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;font-weight:750;font-size:12px}.person-name{font-weight:650}.participant-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.35;white-space:nowrap;vertical-align:middle}.record-type-pill{display:inline-flex;align-items:center;max-width:100%;padding:3px 9px;border:1px solid;border-radius:7px;font-size:10px;font-weight:750;letter-spacing:.15px;line-height:1.4;white-space:nowrap;vertical-align:middle;background:#eef1f3;color:#4d5963;border-color:#d7dde2;gap:5px}.role{margin-left:auto;color:var(--muted);font-size:11px;text-transform:capitalize}
 .participant-link-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.participant-link-button{border:1px solid #d8dfe6;border-radius:8px;background:#fff;color:var(--accent-dark);font-size:11px;font-weight:700;padding:7px 9px;min-height:34px;white-space:nowrap;cursor:pointer}.participant-link-button:disabled{opacity:.6}.participant-link-result{display:grid;gap:9px;padding:12px;margin:0 0 8px 43px;background:var(--soft);border-radius:10px;font-size:12px;overflow-wrap:anywhere}.participant-link-result p{margin:0;line-height:1.5}.participant-link-result button{justify-self:start;border:0;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;padding:8px 11px}.participant-link-result a{color:var(--accent-dark);font-weight:650}
 .add-form{display:grid;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f3}.add-form label{font-size:12px;font-weight:700}.add-form input,.add-form select{width:100%;height:43px;border:1px solid #d8dfe6;border-radius:9px;padding:0 11px;font:inherit;background:#fff;color:var(--ink)}.add-form .field-hint{font-size:11px;color:var(--muted);line-height:1.45;margin-top:-4px}.participant-count-badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#eef2f5;color:#536170;font-size:10px;font-weight:750;white-space:nowrap}.add-form button{border:0;border-radius:9px;background:var(--accent);color:white;font-weight:700;padding:11px 14px}.add-form button:disabled{opacity:.6}.invite-result{margin-top:12px;padding:12px;border:1px solid #d5e3dd;background:var(--soft);border-radius:10px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.invite-result a{color:var(--accent-dark);font-weight:650}.copy-invite{margin-top:9px;background:white!important;color:var(--accent-dark)!important;border:1px solid #c9d8d2!important}.form-error{color:var(--danger);font-size:12px}.placeholder{margin-top:16px;border:1px dashed #d8e0e5;background:#fafbfc;border-radius:12px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6}
 .expense-form{display:grid;gap:12px;margin:0;padding:18px 20px 0;overflow:auto;min-height:0}
@@ -727,11 +727,13 @@ function renderTrip(data, tripId, token) {
   const makeParticipantRow = (person) => {
     const row = document.createElement("div"); row.className = "person";
     const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = initials(person.name); const avatarColour = participantColour(person.id); avatar.style.backgroundColor = avatarColour.background; avatar.style.color = avatarColour.text;
+    const identity = document.createElement("span"); identity.className = "person-identity";
     const name = document.createElement("span"); name.className = "person-name"; name.textContent = person.name;
     const peopleCount = Math.max(1,Number(person.people_count)||1);
     const countBadge = document.createElement("span"); countBadge.className = "participant-count-badge"; countBadge.textContent = "×" + peopleCount; countBadge.title = peopleCount + " people represented";
+    identity.append(name,...(peopleCount > 1 ? [countBadge] : []));
     const role = document.createElement("span"); role.className = "role"; role.textContent = person.role;
-    row.append(avatar,name,...(peopleCount > 1 ? [countBadge] : []),role);
+    row.append(avatar,identity,role);
     if (data.access?.role === "organiser" && person.role === "organiser" && person.id === data.access.participant_id && trip.status === "active") {
       const ownLinkButton = document.createElement("button");
       const ownCopyButton = document.createElement("button");
@@ -1178,7 +1180,10 @@ function renderTrip(data, tripId, token) {
     activeParticipants.forEach(person => {
       const label = document.createElement("label"); label.className = "split-option";
       const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.name = "split_participant_ids"; checkbox.value = person.id; checkbox.checked = true;
-      const text = document.createElement("span"); text.className = "participant-pill"; text.textContent = person.name;
+      const text = document.createElement("span"); text.className = "participant-pill";
+      const peopleCount = Math.max(1,Number(person.people_count)||1);
+      text.textContent = person.name + (peopleCount > 1 ? " ×" + peopleCount : "");
+      if (peopleCount > 1) text.title = peopleCount + " people represented";
       const colour = participantColour(person.id);
       text.style.backgroundColor = colour.background;
       text.style.color = colour.text;
@@ -1194,11 +1199,27 @@ function renderTrip(data, tripId, token) {
     const splitPreview = document.createElement("div"); splitPreview.className = "split-preview"; splitPreview.setAttribute("aria-live","polite");
     let editingExpenseId = null;
     let preservedEditShares = null;
+    let editingEqualWeights = null;
     const selectedSplitPeople = () => Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked'))
       .map(input => activeParticipants.find(person => person.id === input.value)).filter(Boolean);
     const equalShares = (total, count) => {
       const base = Math.floor(total / count), remainder = total % count;
       return Array.from({length:count}, (_,index) => base + (index < remainder ? 1 : 0));
+    };
+    const weightedEqualShares = (total, people) => {
+      const weights = people.map(person => editingExpenseId && editingEqualWeights?.has(person.id)
+        ? editingEqualWeights.get(person.id)
+        : Math.max(1,Math.min(50,Number(person.people_count)||1)) * 1000);
+      const weightTotal = weights.reduce((sum,weight)=>sum+weight,0);
+      const divisor = BigInt(weightTotal);
+      const allocations = people.map((person,index) => {
+        const numerator = BigInt(total) * BigInt(weights[index]);
+        return {index,cents:Number(numerator/divisor),remainder:numerator%divisor};
+      });
+      const remaining = total - allocations.reduce((sum,item)=>sum+item.cents,0);
+      allocations.slice().sort((a,b) => a.remainder === b.remainder ? a.index-b.index : a.remainder > b.remainder ? -1 : 1)
+        .slice(0,remaining).forEach(item => { allocations[item.index].cents += 1; });
+      return allocations.sort((a,b)=>a.index-b.index).map(item=>item.cents);
     };
     const getSplitShares = (amountCents) => {
       const people = selectedSplitPeople();
@@ -1211,7 +1232,7 @@ function renderTrip(data, tripId, token) {
       if (!people.length) return {valid:false,error:"Choose at least one participant to share this expense."};
       const method = splitMethodSelect.value;
       if (method === "equal") {
-        const values = equalShares(amountCents, people.length);
+        const values = weightedEqualShares(amountCents,people);
         return {valid:true,method,shares:people.map((person,index)=>({participant_id:person.id,share_cents:values[index]}))};
       }
       const inputs = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
@@ -1253,8 +1274,12 @@ function renderTrip(data, tripId, token) {
         splitPreview.style.color = "var(--danger)";
         return;
       }
-      const names = new Map((data.participants || []).map(person=>[person.id,person.name]));
-      splitPreview.textContent = result.shares.map(share=>names.get(share.participant_id)+": "+formatMoney(share.share_cents)).join(" · ");
+      const peopleById = new Map((data.participants || []).map(person=>[person.id,person]));
+      splitPreview.textContent = result.shares.map(share => {
+        const person = peopleById.get(share.participant_id);
+        const label = person ? person.name + (Number(person.people_count)>1 ? " ×"+person.people_count : "") : "Participant";
+        return label + ": " + formatMoney(share.share_cents);
+      }).join(" · ");
       splitPreview.style.color = "var(--accent-dark)";
     };
     const updateSplitEditor = () => {
@@ -1315,6 +1340,12 @@ function renderTrip(data, tripId, token) {
     startEditingExpense = (expense) => {
       editingExpenseId = expense.id;
       preservedEditShares = null;
+      editingEqualWeights = null;
+      if ((expense.split_type || "equal") === "equal" && (expense.shares || []).length) {
+        const savedShares = expense.shares;
+        const averageShare = savedShares.reduce((sum,share)=>sum+Number(share.share_cents||0),0) / savedShares.length;
+        if (averageShare > 0) editingEqualWeights = new Map(savedShares.map(share=>[share.participant_id,Math.max(1,Math.round((Number(share.share_cents||0)/averageShare)*1000))]));
+      }
       descriptionInput.value = expense.description || "";
       amountInput.value = (expense.amount_cents / 100).toFixed(2);
       categorySelect.value = expense.category || "Other";
@@ -1362,7 +1393,7 @@ function renderTrip(data, tripId, token) {
     const cancelEditButton = document.createElement("button"); cancelEditButton.type = "button"; cancelEditButton.textContent = "Cancel editing"; cancelEditButton.hidden = true;
     cancelEditButton.style.background = "#fff"; cancelEditButton.style.color = "var(--ink)"; cancelEditButton.style.border = "1px solid var(--line)";
     cancelEditButton.addEventListener("click",() => {
-      editingExpenseId = null; preservedEditShares = null;
+      editingExpenseId = null; preservedEditShares = null; editingEqualWeights = null;
       expenseForm.reset();
       const resetNow = new Date();
       dateInput.value = resetNow.getFullYear() + "-" + String(resetNow.getMonth()+1).padStart(2,"0") + "-" + String(resetNow.getDate()).padStart(2,"0");
@@ -1413,7 +1444,7 @@ function renderTrip(data, tripId, token) {
     expenseDialog.append(expenseForm);
     expenseCard.append(expenseDialog);
     const openNewExpense = () => {
-      editingExpenseId = null; preservedEditShares = null;
+      editingExpenseId = null; preservedEditShares = null; editingEqualWeights = null;
       expenseForm.reset();
       const resetNow = new Date();
       dateInput.value = resetNow.getFullYear() + "-" + String(resetNow.getMonth()+1).padStart(2,"0") + "-" + String(resetNow.getDate()).padStart(2,"0");
