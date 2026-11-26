@@ -1075,7 +1075,7 @@ function renderTrip(data, tripId, token) {
         item.payer_name || "",
         (Number(item.amount_cents || 0) / 100).toFixed(2),
         trip.base_currency || "EUR",
-        (item.shares || []).map(share => share.participant_name + ": " + (Number(share.share_cents || 0) / 100).toFixed(2)).join("; "),
+        (item.shares || []).map(share => share.participant_name + (share.portion_weight ? " (" + share.portion_weight + " portion" + (share.portion_weight === 1 ? "" : "s") + ")" : "") + ": " + (Number(share.share_cents || 0) / 100).toFixed(2)).join("; "),
         item.notes || ""
       ]);
     });
@@ -1137,6 +1137,7 @@ function renderTrip(data, tripId, token) {
       (expense.shares || []).slice().sort(sortByParticipantName).forEach((share,index) => {
         if (index) split.append(document.createTextNode(" · "));
         const sharePill = participantPill(share.participant_name,share.participant_id);
+        if (share.portion_weight) sharePill.append(document.createTextNode(" · " + share.portion_weight + " portion" + (share.portion_weight === 1 ? "" : "s")));
         sharePill.append(document.createTextNode(" · " + formatMoney(share.share_cents)));
         split.append(sharePill);
       });
