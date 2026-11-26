@@ -1450,6 +1450,7 @@ function renderTrip(data, tripId, token) {
       submit.textContent = "Update expense";
       expenseDialogTitle.textContent = "Edit expense";
       expenseDialog.showModal();
+      updateSplitEditor();
       cancelEditButton.hidden = false;
       feedback.style.color = "var(--muted)";
       feedback.textContent = "Editing this expense. Its existing allocations are preserved unless you change the split.";
@@ -1468,7 +1469,6 @@ function renderTrip(data, tripId, token) {
     splitMethodSelect.addEventListener("change",() => { preservedEditShares = null; splitEditorMethod = null; updateSplitEditor(); });
     // Each participant checkbox updates the unified split list directly.
     amountInput.addEventListener("input",updateSplitPreview);
-    updateSplitEditor();
     const notesLabel = document.createElement("label"); notesLabel.textContent = "Notes (optional)";
     const notesInput = document.createElement("textarea"); notesInput.name = "notes"; notesInput.maxLength = 500; notesInput.placeholder = "Anything else to remember?";
     const submit = document.createElement("button"); submit.type = "submit"; submit.textContent = "Save expense";
@@ -1491,6 +1491,8 @@ function renderTrip(data, tripId, token) {
     const expenseActions = document.createElement("div"); expenseActions.className = "expense-form-actions";
     expenseActions.append(submit,cancelEditButton);
     expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,timeLabelEl,timeInput,payerLabel,payerSelect,splitMethodLabel,splitMethodSelect,splitLabel,splitEditor,splitPreview,notesLabel,notesInput,feedback,expenseActions);
+    // Render the participant table only after it is mounted in the expense dialog.
+    updateSplitEditor();
     expenseForm.addEventListener("submit", async event => {
       event.preventDefault();
       feedback.textContent = "";
@@ -1537,6 +1539,7 @@ function renderTrip(data, tripId, token) {
       submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
       expenseDialogTitle.textContent = "New expense";
       expenseDialog.showModal();
+      updateSplitEditor();
     };
     newExpenseButton.addEventListener("click",openNewExpense);
     expenseFab.addEventListener("click",openNewExpense);
