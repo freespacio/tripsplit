@@ -526,7 +526,10 @@ function renderTrip(data, tripId, token) {
       coverBackdrop.className = "trip-cover-backdrop";
       coverBackdrop.append(coverImage);
       const shell = document.querySelector(".shell");
-      if (shell) shell.insertBefore(coverBackdrop,shell.firstChild);
+      if (shell) {
+        shell.querySelectorAll(".trip-cover-backdrop").forEach(existing => existing.remove());
+        shell.insertBefore(coverBackdrop,shell.firstChild);
+      }
     } else {
       const placeholder = document.createElement("div"); placeholder.className = "trip-cover-placeholder";
       placeholder.textContent = "Add a photo to personalise this trip";
