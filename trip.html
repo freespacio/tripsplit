@@ -1192,7 +1192,7 @@ function renderTrip(data, tripId, token) {
     });
     const splitMethodLabel = document.createElement("label"); splitMethodLabel.textContent = "How should it be split?";
     const splitMethodSelect = document.createElement("select"); splitMethodSelect.name = "split_type";
-    [["equal","Equally"],["custom","Exact amounts"],["percentage","Percentages"]].forEach(([value,labelText]) => {
+    [["equal","Equally"],["portions","Portions"],["custom","Exact amounts"],["percentage","Percentages"]].forEach(([value,labelText]) => {
       const option = document.createElement("option"); option.value = value; option.textContent = labelText; splitMethodSelect.append(option);
     });
     const splitEditor = document.createElement("div"); splitEditor.className = "split-editor";
@@ -1200,6 +1200,7 @@ function renderTrip(data, tripId, token) {
     let editingExpenseId = null;
     let preservedEditShares = null;
     let editingEqualWeights = null;
+    let splitEditorMethod = null;
     const selectedSplitPeople = () => Array.from(expenseForm.querySelectorAll('input[name="split_participant_ids"]:checked'))
       .map(input => activeParticipants.find(person => person.id === input.value)).filter(Boolean);
     const equalShares = (total, count) => {
@@ -1236,6 +1237,21 @@ function renderTrip(data, tripId, token) {
         return {valid:true,method,shares:people.map((person,index)=>({participant_id:person.id,share_cents:values[index]}))};
       }
       const inputs = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
+      if (method === "portions") {
+        if (inputs.length !== people.length) return {valid:false,error:"Complete each participant's portion."};
+        const weights = inputs.map(input => Number(input.value));
+        if (weights.some(value => !Number.isInteger(value) || value < 1 || value > 1000)) return {valid:false,error:"Enter a whole number of portions between 1 and 1000 for every participant."};
+        const totalWeight = weights.reduce((sum,value)=>sum+value,0);
+        const divisor = BigInt(totalWeight);
+        const allocations = people.map((person,index) => {
+          const numerator = BigInt(amountCents) * BigInt(weights[index]);
+          return {index,participant_id:person.id,portion_weight:weights[index],share_cents:Number(numerator/divisor),remainder:numerator%divisor};
+        });
+        const remaining = amountCents - allocations.reduce((sum,item)=>sum+item.share_cents,0);
+        allocations.slice().sort((a,b)=>a.remainder===b.remainder?a.index-b.index:a.remainder>b.remainder?-1:1).slice(0,remaining).forEach(item=>{allocations[item.index].share_cents+=1;});
+        if (allocations.some(item=>item.share_cents<=0)) return {valid:false,error:"The expense is too small to give every selected participant a positive share."};
+        return {valid:true,method,shares:allocations.sort((a,b)=>a.index-b.index).map(({remainder,...share})=>share)};
+      }
       if (inputs.length !== people.length) return {valid:false,error:"Complete each participant's share."};
       if (method === "custom") {
         const values = inputs.map(input => {
@@ -1278,24 +1294,35 @@ function renderTrip(data, tripId, token) {
       splitPreview.textContent = result.shares.map(share => {
         const person = peopleById.get(share.participant_id);
         const label = person ? person.name + (Number(person.people_count)>1 ? " ×"+person.people_count : "") : "Participant";
-        return label + ": " + formatMoney(share.share_cents);
+        const portionLabel = share.portion_weight ? " ("+share.portion_weight+" portion"+(share.portion_weight===1?"":"s")+")" : "";
+        return label + portionLabel + ": " + formatMoney(share.share_cents);
       }).join(" · ");
       splitPreview.style.color = "var(--accent-dark)";
     };
     const updateSplitEditor = () => {
-      const previous = new Map(Array.from(splitEditor.querySelectorAll("input[data-split-value]")).map(input=>[input.dataset.participantId,input.value]));
+      const previous = splitEditorMethod === splitMethodSelect.value
+        ? new Map(Array.from(splitEditor.querySelectorAll("input[data-split-value]")).map(input=>[input.dataset.participantId,input.value]))
+        : new Map();
       splitEditor.replaceChildren();
       const method = splitMethodSelect.value;
-      if (method === "equal") { updateSplitPreview(); return; }
+      if (method === "equal") { splitEditorMethod = method; updateSplitPreview(); return; }
       const people = selectedSplitPeople();
       const amountCents = Math.max(0,Math.round(Number(amountInput.value)*100));
       const defaults = equalShares(amountCents,Math.max(1,people.length));
+      if (method === "portions") {
+        const hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Portions start with each participant's people count. Adjust them as needed.";
+        splitEditor.append(hint);
+      }
       people.forEach((person,index) => {
         const row = document.createElement("label"); row.className = "split-share-row";
         const name = document.createElement("span"); name.textContent = person.name;
-        const input = document.createElement("input"); input.type = "number"; input.min = "0.01"; input.step = "0.01";
+        const input = document.createElement("input"); input.type = "number";
+        input.min = method === "portions" ? "1" : "0.01";
+        input.max = method === "portions" ? "1000" : "";
+        input.step = method === "portions" ? "1" : "0.01";
         input.dataset.splitValue = "true"; input.dataset.participantId = person.id;
         if (previous.has(person.id)) input.value = previous.get(person.id);
+        else if (method === "portions") input.value = String(Math.max(1,Math.min(50,Number(person.people_count)||1)));
         else if (method === "custom") input.value = (defaults[index]/100).toFixed(2);
         else {
           const percentageDefault = index === people.length - 1
@@ -1323,7 +1350,7 @@ function renderTrip(data, tripId, token) {
           updateSplitPreview();
         });
         row.append(name,input);
-        const suffix = document.createElement("span"); suffix.className = "split-share-suffix"; suffix.textContent = method === "custom" ? trip.base_currency : "%";
+        const suffix = document.createElement("span"); suffix.className = "split-share-suffix"; suffix.textContent = method === "custom" ? trip.base_currency : method === "portions" ? "portions" : "%";
         row.append(suffix); splitEditor.append(row);
       });
       if ((method === "custom" || method === "percentage") && people.length === 2) {
@@ -1334,6 +1361,7 @@ function renderTrip(data, tripId, token) {
           fields[1].value = ((maximum - firstUnits) / 100).toFixed(2);
         }
       }
+      splitEditorMethod = method;
       updateSplitPreview();
     };
 
@@ -1356,14 +1384,15 @@ function renderTrip(data, tripId, token) {
       const included = new Set((expense.shares || []).map(share => share.participant_id));
       Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input => { input.checked = included.has(input.value); });
       splitMethodSelect.value = expense.split_type || "equal";
+      splitEditorMethod = null;
       updateSplitEditor();
       const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
       const sharesByPerson = new Map((expense.shares || []).map(share => [share.participant_id,share.share_cents]));
       fields.forEach(input => {
         const cents = sharesByPerson.get(input.dataset.participantId) || 0;
-        input.value = splitMethodSelect.value === "percentage" ? ((cents / expense.amount_cents) * 100).toFixed(2) : (cents / 100).toFixed(2);
+        input.value = splitMethodSelect.value === "portions" ? String(savedShare?.portion_weight || 1) : splitMethodSelect.value === "percentage" ? ((cents / expense.amount_cents) * 100).toFixed(2) : (cents / 100).toFixed(2);
       });
-      preservedEditShares = {amount:expense.amount_cents,method:splitMethodSelect.value,ids:(expense.shares || []).map(share=>share.participant_id),shares:(expense.shares || []).map(share=>({participant_id:share.participant_id,share_cents:share.share_cents}))};
+      preservedEditShares = {amount:expense.amount_cents,method:splitMethodSelect.value,ids:(expense.shares || []).map(share=>share.participant_id),shares:(expense.shares || []).map(share=>({participant_id:share.participant_id,share_cents:share.share_cents,portion_weight:share.portion_weight ?? null}))};
       updateSplitPreview();
       submit.textContent = "Update expense";
       expenseDialogTitle.textContent = "Edit expense";
@@ -1383,7 +1412,7 @@ function renderTrip(data, tripId, token) {
         await refreshTrip();
       } catch (error) { window.alert(error.message || "We couldn't delete this expense."); }
     };
-    splitMethodSelect.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
+    splitMethodSelect.addEventListener("change",() => { preservedEditShares = null; splitEditorMethod = null; updateSplitEditor(); });
     splitOptions.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
     amountInput.addEventListener("input",updateSplitPreview);
     updateSplitEditor();
@@ -1400,7 +1429,7 @@ function renderTrip(data, tripId, token) {
       timeInput.value = String(resetNow.getHours()).padStart(2,"0") + ":" + String(resetNow.getMinutes()).padStart(2,"0");
       payerSelect.value = access.participant_id;
       Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input=>input.checked=true);
-      splitMethodSelect.value = "equal"; updateSplitEditor();
+      splitMethodSelect.value = "equal"; splitEditorMethod = null; updateSplitEditor();
       submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
       expenseDialogTitle.textContent = "New expense";
       if (expenseDialog.open) expenseDialog.close();
@@ -1451,7 +1480,7 @@ function renderTrip(data, tripId, token) {
       timeInput.value = String(resetNow.getHours()).padStart(2,"0") + ":" + String(resetNow.getMinutes()).padStart(2,"0");
       payerSelect.value = access.participant_id;
       Array.from(splitOptions.querySelectorAll('input[name="split_participant_ids"]')).forEach(input=>input.checked=true);
-      splitMethodSelect.value = "equal"; updateSplitEditor();
+      splitMethodSelect.value = "equal"; splitEditorMethod = null; updateSplitEditor();
       submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
       expenseDialogTitle.textContent = "New expense";
       expenseDialog.showModal();
@@ -1659,7 +1688,8 @@ function renderTrip(data, tripId, token) {
         shares: (item.shares || []).map(share => ({
           participant_id: share.participant_id,
           participant_name: share.participant_name || "",
-          share_cents: Number(share.share_cents || 0)
+          share_cents: Number(share.share_cents || 0),
+          portion_weight: share.portion_weight ?? null
         })),
         notes: item.notes || ""
       })),
