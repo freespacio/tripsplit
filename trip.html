@@ -1299,9 +1299,11 @@ function renderTrip(data, tripId, token) {
     };
     const updateSplitEditor = () => {
       const method = splitMethodSelect.value;
-      splitEditor.querySelectorAll("input[data-split-value]").forEach(input => {
-        splitValueCache.set(method + ":" + input.dataset.participantId,input.value);
-      });
+      if (splitEditorMethod) {
+        splitEditor.querySelectorAll("input[data-split-value]").forEach(input => {
+          splitValueCache.set(splitEditorMethod + ":" + input.dataset.participantId,input.value);
+        });
+      }
       splitEditor.replaceChildren();
 
       const header = document.createElement("div"); header.className = "split-table-header";
