@@ -1,4 +1,4 @@
-const CACHE_NAME = "tripsplit-shell-v3";
+const CACHE_NAME = "tripsplit-shell-v4";
 const APP_FILES = [
   "./",
   "./index.html",
