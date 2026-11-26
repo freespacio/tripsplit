@@ -1464,7 +1464,7 @@ function renderTrip(data, tripId, token) {
       } catch (error) { window.alert(error.message || "We couldn't delete this expense."); }
     };
     splitMethodSelect.addEventListener("change",() => { preservedEditShares = null; splitEditorMethod = null; updateSplitEditor(); });
-    splitOptions.addEventListener("change",() => { preservedEditShares = null; updateSplitEditor(); });
+    // Each participant checkbox updates the unified split list directly.
     amountInput.addEventListener("input",updateSplitPreview);
     updateSplitEditor();
     const notesLabel = document.createElement("label"); notesLabel.textContent = "Notes (optional)";
