@@ -1298,6 +1298,7 @@ function renderTrip(data, tripId, token) {
       }
     };
     const updateSplitEditor = () => {
+      try {
       const method = splitMethodSelect.value;
       if (splitEditorMethod) {
         splitEditor.querySelectorAll("input[data-split-value]").forEach(input => {
@@ -1307,7 +1308,7 @@ function renderTrip(data, tripId, token) {
       splitEditor.replaceChildren();
 
       const header = document.createElement("div"); header.className = "split-table-header";
-      const participantHeading = document.createElement("span"); participantHeading.textContent = "Participant";
+      const participantHeading = document.createElement("span"); participantHeading.textContent = "Participants (" + activeParticipants.length + ")";
       const inputHeading = document.createElement("span"); inputHeading.textContent = method === "portions" ? "Portions" : method === "custom" ? "Amount" : method === "percentage" ? "Percent" : "Split";
       const shareHeading = document.createElement("span"); shareHeading.textContent = "Share";
       header.append(document.createElement("span"),participantHeading,inputHeading,shareHeading);
@@ -1420,6 +1421,15 @@ function renderTrip(data, tripId, token) {
       }
       splitEditorMethod = method;
       updateSplitPreview();
+      } catch (error) {
+        console.error("TripSplit participant split editor failed to render", error);
+        splitEditor.replaceChildren();
+        const diagnostic = document.createElement("p");
+        diagnostic.className = "split-empty-state";
+        diagnostic.setAttribute("role","alert");
+        diagnostic.textContent = "We couldn't display the participant list: " + (error?.message || "Please close and reopen this form.");
+        splitEditor.append(diagnostic);
+      }
     };
 
     startEditingExpense = (expense) => {
