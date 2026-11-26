@@ -1390,6 +1390,7 @@ function renderTrip(data, tripId, token) {
       const fields = Array.from(splitEditor.querySelectorAll("input[data-split-value]"));
       const sharesByPerson = new Map((expense.shares || []).map(share => [share.participant_id,share.share_cents]));
       fields.forEach(input => {
+        const savedShare = (expense.shares || []).find(share => share.participant_id === input.dataset.participantId);
         const cents = sharesByPerson.get(input.dataset.participantId) || 0;
         input.value = splitMethodSelect.value === "portions" ? String(savedShare?.portion_weight || 1) : splitMethodSelect.value === "percentage" ? ((cents / expense.amount_cents) * 100).toFixed(2) : (cents / 100).toFixed(2);
       });
@@ -1871,7 +1872,7 @@ function renderTrip(data, tripId, token) {
   ]));
   addReportTable("Expenses",["Date","Time","Description","Category","Paid by","Amount","Split"],(data.expenses||[]).map(item=>[
     item.expense_date||"",item.expense_time?String(item.expense_time).slice(0,5):"",item.description||"",recordTypePill(item.category),participantPill(item.payer_name,item.payer_id),formatMoney(item.amount_cents),
-    (item.shares||[]).slice().sort(sortByParticipantName).flatMap((share,index)=>index?[document.createTextNode(" · "),participantPill(share.participant_name,share.participant_id),document.createTextNode(" · "+formatMoney(share.share_cents))]:[participantPill(share.participant_name,share.participant_id),document.createTextNode(" · "+formatMoney(share.share_cents))])
+    (item.shares||[]).slice().sort(sortByParticipantName).flatMap((share,index)=>index?[document.createTextNode(" · "),participantPill(share.participant_name,share.participant_id),document.createTextNode(" · "+(share.portion_weight ? share.portion_weight+" portion"+(share.portion_weight===1?"":"s")+" · " : "")+formatMoney(share.share_cents))]:[participantPill(share.participant_name,share.participant_id),document.createTextNode(" · "+(share.portion_weight ? share.portion_weight+" portion"+(share.portion_weight===1?"":"s")+" · " : "")+formatMoney(share.share_cents))])
   ]));
   addReportTable("Balances",["Participant","Expenses paid","Share of expenses","Repayment adjustment","Net balance"],balances.map(item=>[
     participantPill(item.person.name,item.person.id),formatMoney(item.paid),formatMoney(item.share),formatMoney(item.settlementAdjustment),
