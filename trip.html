@@ -1314,6 +1314,12 @@ function renderTrip(data, tripId, token) {
       splitEditor.append(header);
 
       const selectedPeople = selectedSplitPeople();
+      if (!activeParticipants.length) {
+        const empty = document.createElement("p");
+        empty.className = "split-empty-state";
+        empty.textContent = "No active participants are available. Add a participant before recording this expense.";
+        splitEditor.append(empty);
+      }
       const amountCents = Math.max(0,Math.round(Number(amountInput.value)*100));
       const defaults = equalShares(amountCents,Math.max(1,selectedPeople.length));
       const selectedIndex = new Map(selectedPeople.map((person,index)=>[person.id,index]));
@@ -1450,7 +1456,7 @@ function renderTrip(data, tripId, token) {
       submit.textContent = "Update expense";
       expenseDialogTitle.textContent = "Edit expense";
       expenseDialog.showModal();
-      updateSplitEditor();
+      requestAnimationFrame(updateSplitEditor);
       cancelEditButton.hidden = false;
       feedback.style.color = "var(--muted)";
       feedback.textContent = "Editing this expense. Its existing allocations are preserved unless you change the split.";
@@ -1491,8 +1497,6 @@ function renderTrip(data, tripId, token) {
     const expenseActions = document.createElement("div"); expenseActions.className = "expense-form-actions";
     expenseActions.append(submit,cancelEditButton);
     expenseForm.append(descriptionLabel,descriptionInput,amountLabel,amountInput,categoryLabel,categorySelect,dateLabelEl,dateInput,timeLabelEl,timeInput,payerLabel,payerSelect,splitMethodLabel,splitMethodSelect,splitLabel,splitEditor,splitPreview,notesLabel,notesInput,feedback,expenseActions);
-    // Render the participant table only after it is mounted in the expense dialog.
-    updateSplitEditor();
     expenseForm.addEventListener("submit", async event => {
       event.preventDefault();
       feedback.textContent = "";
@@ -1527,6 +1531,7 @@ function renderTrip(data, tripId, token) {
     });
     expenseDialog.append(expenseForm);
     expenseCard.append(expenseDialog);
+    // The participant table is rendered when the dialog is opened, after it is in the document.
     const openNewExpense = () => {
       editingExpenseId = null; preservedEditShares = null; editingEqualWeights = null;
       expenseForm.reset();
@@ -1539,7 +1544,7 @@ function renderTrip(data, tripId, token) {
       submit.textContent = "Save expense"; cancelEditButton.hidden = true; feedback.textContent = "";
       expenseDialogTitle.textContent = "New expense";
       expenseDialog.showModal();
-      updateSplitEditor();
+      requestAnimationFrame(() => { updateSplitEditor(); expenseForm.scrollTop = 0; });
     };
     newExpenseButton.addEventListener("click",openNewExpense);
     expenseFab.addEventListener("click",openNewExpense);
