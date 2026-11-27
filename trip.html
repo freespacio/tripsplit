@@ -1306,8 +1306,16 @@ function renderTrip(data, tripId, token) {
         });
       }
       splitEditor.replaceChildren();
+      // Keep the participant list as a visible block inside the scrollable form.
+      // Explicit inline layout avoids inherited grid/visibility rules hiding its rows.
+      splitEditor.style.display = "block";
+      splitEditor.style.visibility = "visible";
+      splitEditor.style.overflow = "visible";
+      splitEditor.style.minHeight = "48px";
 
       const header = document.createElement("div"); header.className = "split-table-header";
+      header.style.display = "grid";
+      header.style.visibility = "visible";
       const participantHeading = document.createElement("span"); participantHeading.textContent = "Participants (" + activeParticipants.length + ")";
       const inputHeading = document.createElement("span"); inputHeading.textContent = method === "portions" ? "Portions" : method === "custom" ? "Amount" : method === "percentage" ? "Percent" : "Split";
       const shareHeading = document.createElement("span"); shareHeading.textContent = "Share";
@@ -1351,6 +1359,10 @@ function renderTrip(data, tripId, token) {
       activeParticipants.forEach(person => {
         const included = splitSelectionIds.has(person.id);
         const row = document.createElement("div"); row.className = "split-person-row" + (included ? "" : " is-excluded");
+        row.style.display = "grid";
+        row.style.visibility = "visible";
+        row.style.minHeight = "48px";
+        row.style.position = "relative";
         row.dataset.participantId = person.id;
         const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.name = "split_participant_ids";
         checkbox.value = person.id; checkbox.checked = included; checkbox.setAttribute("aria-label","Include " + person.name);
